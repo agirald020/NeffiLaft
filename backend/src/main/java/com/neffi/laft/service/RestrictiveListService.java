@@ -1,12 +1,18 @@
 package com.neffi.laft.service;
 
+import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.model.RestrictiveListEntry;
 import com.neffi.laft.repository.InMemoryRestrictiveListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -17,17 +23,79 @@ public class RestrictiveListService {
     private final InMemoryRestrictiveListRepository repository;
 
     public List<RestrictiveListEntry> validateClient(ValidateClientDto dto) {
-        log.info("Validando cliente - Tipo: {}, Documento: {}", dto.getDocumentType(), dto.getDocumentNumber());
+        log.info("Validando cliente - Tipo: {}, Documento: {}, Nombre: {}",
+            dto.getDocumentType(), dto.getDocumentNumber(), dto.getFullName());
 
-        List<RestrictiveListEntry> results = repository.findByDocumentTypeAndNumber(
-            dto.getDocumentType(), dto.getDocumentNumber()
-        );
+        List<RestrictiveListEntry> results = new ArrayList<>();
 
-        if (results.isEmpty() && dto.getDocumentNumber() != null) {
+        boolean hasDocument = dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank();
+        boolean hasName = dto.getFullName() != null && !dto.getFullName().isBlank();
+
+        if (hasDocument && dto.getDocumentType() != null && !dto.getDocumentType().isBlank()) {
+            results = repository.findByDocumentTypeAndNumber(dto.getDocumentType(), dto.getDocumentNumber());
+            if (results.isEmpty()) {
+                results = repository.findByDocumentNumber(dto.getDocumentNumber());
+            }
+        } else if (hasDocument) {
             results = repository.findByDocumentNumber(dto.getDocumentNumber());
+        } else if (hasName) {
+            results = repository.findByName(dto.getFullName());
         }
 
-        log.info("Encontradas {} coincidencias para documento {}", results.size(), dto.getDocumentNumber());
+        log.info("Encontradas {} coincidencias", results.size());
         return results;
+    }
+
+    public List<BulkValidateResultDto> validateBulk(MultipartFile file) throws Exception {
+        log.info("Validación masiva - archivo: {}", file.getOriginalFilename());
+        List<BulkValidateResultDto> results = new ArrayList<>();
+
+        try (InputStream is = file.getInputStream();
+             Workbook workbook = new XSSFWorkbook(is)) {
+
+            Sheet sheet = workbook.getSheetAt(0);
+            int firstDataRow = 1;
+
+            for (int i = firstDataRow; i <= sheet.getLastRowNum(); i++) {
+                Row row = sheet.getRow(i);
+                if (row == null) continue;
+
+                String docType = getCellString(row, 0);
+                String docNumber = getCellString(row, 1);
+                String name = getCellString(row, 2);
+
+                if (docType.isBlank() && docNumber.isBlank() && name.isBlank()) continue;
+
+                ValidateClientDto dto = new ValidateClientDto(docType, docNumber, name);
+                List<RestrictiveListEntry> matches = validateClient(dto);
+
+                results.add(BulkValidateResultDto.builder()
+                    .queryDocumentType(docType)
+                    .queryDocumentNumber(docNumber)
+                    .queryFullName(name)
+                    .matchCount(matches.size())
+                    .matches(matches)
+                    .build());
+            }
+        }
+
+        log.info("Validación masiva completada - {} registros procesados", results.size());
+        return results;
+    }
+
+    private String getCellString(Row row, int col) {
+        Cell cell = row.getCell(col);
+        if (cell == null) return "";
+        return switch (cell.getCellType()) {
+            case STRING -> cell.getStringCellValue().trim();
+            case NUMERIC -> {
+                double val = cell.getNumericCellValue();
+                if (val == Math.floor(val)) {
+                    yield String.valueOf((long) val);
+                }
+                yield String.valueOf(val);
+            }
+            default -> "";
+        };
     }
 }
