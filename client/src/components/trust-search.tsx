@@ -25,7 +25,7 @@ export default function TrustSearch({ value, onChange }: TrustSearchProps) {
               data-testid="input-search"
             />
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-blue-500" />
+              <Search className="h-5 w-5 text-red-500" />
             </div>
             <div className="absolute inset-y-0 right-0 pr-4 flex items-center">
               <kbd className="hidden sm:inline-flex items-center px-2 py-1 text-xs font-semibold text-gray-500 bg-gray-100 dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded">
@@ -45,14 +45,13 @@ export default function TrustSearch({ value, onChange }: TrustSearchProps) {
         </div>
       </div>
       
-      {/* Search Suggestions */}
       <div className="mt-6 flex flex-wrap gap-2">
         <span className="text-sm text-gray-600 dark:text-gray-400 mr-3">Sugerencias:</span>
         {["FID-2024", "Inmobiliario", "Activo", "Vigente"].map((suggestion) => (
           <button
             key={suggestion}
             onClick={() => onChange(suggestion)}
-            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors"
+            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 hover:bg-red-200 dark:hover:bg-red-900/50 transition-colors"
           >
             {suggestion}
           </button>

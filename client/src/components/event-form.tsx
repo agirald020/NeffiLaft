@@ -54,7 +54,6 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
     },
   });
 
-  // Load existing attachments when editing an event
   useEffect(() => {
     if (event && Array.isArray(event.attachments)) {
       setAttachments(event.attachments);
@@ -134,9 +133,9 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border-0 shadow-2xl rounded-2xl">
-        <DialogHeader className="pb-6 border-b border-blue-100/60 dark:border-gray-700/60">
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent" data-testid="dialog-title">
-            {event ? "✏️ Editar Evento" : "➕ Registrar Nuevo Evento"}
+        <DialogHeader className="pb-6 border-b border-gray-200/60 dark:border-gray-700/60">
+          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-red-600 to-gray-800 bg-clip-text text-transparent" data-testid="dialog-title">
+            {event ? "Editar Evento" : "Registrar Nuevo Evento"}
           </DialogTitle>
         </DialogHeader>
 
@@ -297,7 +296,7 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
               control={form.control}
               name="includeInReport"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-4 space-y-0 bg-gradient-to-r from-blue-50/80 to-purple-50/80 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl border border-blue-200/60 dark:border-blue-700/60 p-6 shadow-sm">
+                <FormItem className="flex flex-row items-start space-x-4 space-y-0 bg-gradient-to-r from-red-50/80 to-gray-50/80 dark:from-red-900/20 dark:to-gray-900/20 rounded-xl border border-red-200/60 dark:border-red-700/60 p-6 shadow-sm">
                   <FormControl>
                     <Checkbox
                       checked={field.value}
@@ -306,10 +305,10 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel className="text-sm font-semibold text-blue-900 dark:text-blue-100">
-                      📊 Incluir en Informe de Rendición
+                    <FormLabel className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                      Incluir en Informe de Rendición
                     </FormLabel>
-                    <p className="text-xs text-blue-600/80 dark:text-blue-300/80">
+                    <p className="text-xs text-gray-600/80 dark:text-gray-300/80">
                       Marque esta opción si el evento debe aparecer en los informes de rendición de cuentas del fideicomiso
                     </p>
                   </div>
@@ -318,10 +317,10 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
             />
 
             <div>
-              <label className="block text-base font-semibold text-blue-900 dark:text-blue-100 mb-3">
-                📷 Evidencia Fotográfica y Documentos
+              <label className="block text-base font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Evidencia Fotográfica y Documentos
               </label>
-              <p className="text-xs text-blue-600/70 dark:text-blue-300/70 mb-4">
+              <p className="text-xs text-gray-600/70 dark:text-gray-300/70 mb-4">
                 Agregue fotografías, documentos y otros archivos relacionados al evento
               </p>
               
@@ -330,7 +329,7 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                   <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {attachments.map((attachment, index) => (
                       <div key={index} className="relative group">
-                        <div className="aspect-square bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl overflow-hidden border-2 border-blue-200/60 dark:border-blue-700/60 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 shadow-sm">
+                        <div className="aspect-square bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 rounded-xl overflow-hidden border-2 border-gray-200/60 dark:border-gray-700/60 hover:border-red-400 dark:hover:border-red-500 transition-all duration-200 shadow-sm">
                           {attachment.name.match(/\.(jpg|jpeg|png|gif|webp)$/i) ? (
                             <img 
                               src={attachment.url} 
@@ -339,9 +338,9 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                               data-testid={`image-${index}`}
                             />
                           ) : (
-                            <div className="w-full h-full flex flex-col items-center justify-center p-2 bg-gradient-to-br from-blue-100/50 to-purple-100/50 dark:from-blue-800/30 dark:to-purple-800/30">
-                              <Paperclip className="h-8 w-8 text-blue-500 dark:text-blue-400 mb-2" />
-                              <span className="text-xs text-center text-blue-700 dark:text-blue-300 break-words font-medium">
+                            <div className="w-full h-full flex flex-col items-center justify-center p-2 bg-gradient-to-br from-gray-100/50 to-gray-200/50 dark:from-gray-800/30 dark:to-gray-700/30">
+                              <Paperclip className="h-8 w-8 text-red-500 dark:text-red-400 mb-2" />
+                              <span className="text-xs text-center text-gray-700 dark:text-gray-300 break-words font-medium">
                                 {attachment.name}
                               </span>
                             </div>
@@ -357,7 +356,7 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                         >
                           <X className="h-3 w-3" />
                         </Button>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-blue-900/90 to-purple-900/90 backdrop-filter backdrop-blur-sm text-white text-xs p-1 rounded-b-xl opacity-0 group-hover:opacity-100 transition-all duration-200">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-r from-gray-900/90 to-black/90 backdrop-filter backdrop-blur-sm text-white text-xs p-1 rounded-b-xl opacity-0 group-hover:opacity-100 transition-all duration-200">
                           <span className="block truncate" data-testid={`attachment-name-${index}`}>
                             {attachment.name}
                           </span>
@@ -373,32 +372,32 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                 maxFileSize={20971520}
                 onGetUploadParameters={handleGetUploadParameters}
                 onComplete={handleUploadComplete}
-                buttonClassName="w-full border-2 border-dashed border-blue-300/60 dark:border-blue-600/60 rounded-2xl p-8 hover:border-blue-500 dark:hover:border-blue-400 transition-all duration-300 bg-gradient-to-br from-blue-50/30 to-purple-50/30 dark:from-blue-900/10 dark:to-purple-900/10 hover:from-blue-100/50 hover:to-purple-100/50 dark:hover:from-blue-900/20 dark:hover:to-purple-900/20 shadow-sm hover:shadow-md"
+                buttonClassName="w-full border-2 border-dashed border-red-300/60 dark:border-red-600/60 rounded-2xl p-8 hover:border-red-500 dark:hover:border-red-400 transition-all duration-300 bg-gradient-to-br from-red-50/30 to-gray-50/30 dark:from-red-900/10 dark:to-gray-900/10 hover:from-red-100/50 hover:to-gray-100/50 dark:hover:from-red-900/20 dark:hover:to-gray-900/20 shadow-sm hover:shadow-md"
               >
                 <div className="text-center" data-testid="upload-area">
-                  <Upload className="mx-auto h-10 w-10 text-blue-500 dark:text-blue-400 mb-3" />
-                  <p className="text-base font-semibold text-blue-900 dark:text-blue-100 mb-2">
-                    📁 Agregar Evidencia Fotográfica o Documentos
+                  <Upload className="mx-auto h-10 w-10 text-red-500 dark:text-red-400 mb-3" />
+                  <p className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">
+                    Agregar Evidencia Fotográfica o Documentos
                   </p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-300/70">
-                    Imágenes: JPG, PNG, GIF, WEBP • Documentos: PDF, DOC, DOCX, XLS, XLSX
+                  <p className="text-xs text-gray-600/70 dark:text-gray-300/70">
+                    Imágenes: JPG, PNG, GIF, WEBP - Documentos: PDF, DOC, DOCX, XLS, XLSX
                   </p>
-                  <p className="text-xs text-blue-600/70 dark:text-blue-300/70 mt-1">
-                    Máx. 20MB por archivo • Hasta 10 archivos
+                  <p className="text-xs text-gray-600/70 dark:text-gray-300/70 mt-1">
+                    Máx. 20MB por archivo - Hasta 10 archivos
                   </p>
                 </div>
               </ObjectUploader>
             </div>
 
-            <div className="flex justify-end space-x-4 pt-6 border-t border-blue-100/60 dark:border-gray-700/60">
+            <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200/60 dark:border-gray-700/60">
               <Button
                 type="button"
                 variant="outline"
-                className="px-6 py-3 border-blue-200 dark:border-gray-600 hover:bg-blue-50 dark:hover:bg-gray-800 transition-all duration-200"
+                className="px-6 py-3 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
                 onClick={onClose}
                 data-testid="button-cancel-event"
               >
-                ❌ Cancelar
+                Cancelar
               </Button>
               <Button
                 type="submit"
@@ -407,8 +406,8 @@ export default function EventForm({ trustId, event, isOpen, onClose }: EventForm
                 data-testid="button-save-event"
               >
                 {saveEventMutation.isPending 
-                  ? "⏳ Guardando..." 
-                  : event ? "✨ Actualizar Evento" : "💾 Registrar Evento"
+                  ? "Guardando..." 
+                  : event ? "Actualizar Evento" : "Registrar Evento"
                 }
               </Button>
             </div>
