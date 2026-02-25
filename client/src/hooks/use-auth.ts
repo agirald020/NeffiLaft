@@ -1,36 +1,94 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { queryClient, getQueryFn } from "@/lib/queryClient";
-import type { AuthState } from "@shared/schema";
+import { createContext, useContext } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
-export function useAuth() {
-  const { data, isLoading } = useQuery<AuthState>({
-    queryKey: ["/api/auth/me"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-    staleTime: 30000,
-    retry: false,
-  });
+export interface User {
+  id: string;
+  username?: string;
+  email?: string;
+  name?: string;
+  roles: string[];
+}
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const res = await fetch("/api/auth/logout", {
-        method: "POST",
-        credentials: "include",
-      });
-      return res.json();
-    },
-    onSuccess: (data: { logoutUrl: string }) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/me"] });
-      if (data.logoutUrl) {
-        window.location.href = data.logoutUrl;
+export interface AuthContextType {
+  user: User | null;
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: () => void;
+  logout: () => void;
+  error: Error | null;
+}
+
+export const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export function useAuth(): AuthContextType {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+}
+
+export function useAuthQuery() {
+  const queryClient = useQueryClient();
+
+  const {
+    data: user,
+    isLoading,
+    error
+  } = useQuery<User | null>({
+    queryKey: ["/api/auth/user"],
+    queryFn: async () => {
+      try {
+        const response = await fetch("/api/auth/user", {
+          credentials: 'include',
+        });
+        
+        if (response.status === 401) {
+          return null;
+        }
+        
+        if (!response.ok) {
+          throw new Error("Authentication failed");
+        }
+        
+        return response.json();
+      } catch (error) {
+        console.error("Auth query error:", error);
+        return null;
       }
     },
+    retry: false,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  const login = () => {
+    window.location.href = "/auth/login";
+  };
+
+  const logout = async () => {
+    try {
+      await fetch("/auth/logout", {
+        method: "GET",
+        credentials: 'include',
+      });
+      
+      // Clear all queries and redirect
+      queryClient.clear();
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Even if logout fails, clear local state
+      queryClient.clear();
+      window.location.href = "/";
+    }
+  };
+
   return {
-    isAuthenticated: data?.isAuthenticated ?? false,
-    user: data?.user ?? null,
+    user: user || null,
+    isAuthenticated: !!user,
     isLoading,
-    logout: () => logoutMutation.mutate(),
-    isLoggingOut: logoutMutation.isPending,
+    login,
+    logout,
+    error: error as Error | null
   };
 }
