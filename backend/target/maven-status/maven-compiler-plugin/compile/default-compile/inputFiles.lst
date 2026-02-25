@@ -1,7 +1,11 @@
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/model/Event.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryRestrictiveListRepository.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/model/RestrictiveListEntry.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/config/CorsConfig.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/controller/RestrictiveListController.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/controller/EventController.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/controller/TrustController.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/ValidateClientDto.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/controller/AuthController.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/CreateContractDto.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/service/EventService.java
@@ -12,6 +16,7 @@
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryTrustRepository.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryContractRepository.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/NeffiLaftApplication.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/service/RestrictiveListService.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/service/TrustService.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/config/SecurityConfig.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/model/Contract.java
