@@ -12,6 +12,7 @@ com/neffi/laft/dto/CreateContractDto.class
 com/neffi/laft/NeffiLaftApplication.class
 com/neffi/laft/model/Contract.class
 com/neffi/laft/service/ContractService.class
+com/neffi/laft/dto/BulkValidateResultDto.class
 com/neffi/laft/model/RestrictiveListEntry.class
 com/neffi/laft/controller/TrustController.class
 com/neffi/laft/controller/RestrictiveListController.class
@@ -21,8 +22,10 @@ com/neffi/laft/controller/ContractController.class
 com/neffi/laft/dto/ValidateClientDto.class
 com/neffi/laft/service/EventService.class
 com/neffi/laft/controller/EventController.class
+com/neffi/laft/dto/BulkValidateResultDto$BulkValidateResultDtoBuilder.class
 com/neffi/laft/model/RestrictiveListEntry$RestrictiveListEntryBuilder.class
 com/neffi/laft/model/Trust$TrustBuilder.class
 com/neffi/laft/service/TrustService.class
 com/neffi/laft/repository/InMemoryRestrictiveListRepository.class
+com/neffi/laft/service/RestrictiveListService$1.class
 com/neffi/laft/repository/InMemoryTrustRepository.class

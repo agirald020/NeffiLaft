@@ -1,15 +1,14 @@
 package com.neffi.laft.dto;
 
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ValidateClientDto {
-    @NotBlank(message = "El tipo de documento es requerido")
     private String documentType;
-
-    @NotBlank(message = "El número de documento es requerido")
     private String documentNumber;
-
     private String fullName;
 }
