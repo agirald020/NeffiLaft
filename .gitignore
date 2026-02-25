@@ -4,3 +4,6 @@ dist
 server/public
 vite.config.ts.*
 *.tar.gz
+# Environment variables (no subir a git)
+.env
+.env.local

@@ -1,0 +1,32 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: neffi-laft
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}
+          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}/protocol/openid-connect/certs
+
+keycloak:
+  realm: ${KEYCLOAK_REALM:Ideea}
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
+  client-id: ${KEYCLOAK_CLIENT_ID:neffi-trust-dev}
+
+app:
+  bypass-auth: ${AUTH_BYPASS:false}
+  cors:
+    allowed-origins:
+      - "http://localhost:5000"
+      - "http://localhost:5173"
+      - "https://*.replit.dev"
+      - "https://*.replit.app"
+
+logging:
+  level:
+    com.neffi: DEBUG
+    org.springframework.security: INFO

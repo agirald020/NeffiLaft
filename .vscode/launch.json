@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-NeffiLaftApplication<neffi-trust>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.neffi.laft.NeffiLaftApplication",
+            "projectName": "neffi-trust",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
