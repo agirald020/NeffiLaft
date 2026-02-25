@@ -6,6 +6,7 @@ const KEYCLOAK_URL = process.env.KEYCLOAK_URL || "https://keycloak.example.com";
 const KEYCLOAK_REALM = process.env.KEYCLOAK_REALM || "neffitrust";
 const KEYCLOAK_CLIENT_ID = process.env.KEYCLOAK_CLIENT_ID || "neffilaft";
 const KEYCLOAK_CLIENT_SECRET = process.env.KEYCLOAK_CLIENT_SECRET || "";
+const DEV_BYPASS = process.env.NODE_ENV !== "production";
 
 function getBaseUrl(req: Request): string {
   const protocol = req.headers["x-forwarded-proto"] || req.protocol || "https";
@@ -40,6 +41,15 @@ declare module "express-session" {
   }
 }
 
+const DEV_USER = {
+  id: "dev-user-001",
+  username: "dev.user",
+  email: "dev@neffilaft.local",
+  firstName: "Usuario",
+  lastName: "Desarrollo",
+  roles: ["admin", "user"],
+};
+
 export function setupAuth(app: Express) {
   app.use(
     session({
@@ -56,6 +66,12 @@ export function setupAuth(app: Express) {
   );
 
   app.get("/api/auth/login", (req: Request, res: Response) => {
+    if (DEV_BYPASS) {
+      req.session.user = DEV_USER;
+      log(`[DEV BYPASS] User logged in: ${DEV_USER.username}`, "auth");
+      return res.redirect("/");
+    }
+
     const baseUrl = getBaseUrl(req);
     const redirectUri = `${baseUrl}/api/auth/callback`;
     const urls = getKeycloakUrls();
@@ -72,6 +88,11 @@ export function setupAuth(app: Express) {
   });
 
   app.get("/api/auth/callback", async (req: Request, res: Response) => {
+    if (DEV_BYPASS) {
+      req.session.user = DEV_USER;
+      return res.redirect("/");
+    }
+
     const { code } = req.query;
 
     if (!code) {
@@ -148,16 +169,24 @@ export function setupAuth(app: Express) {
 
   app.get("/api/auth/me", (req: Request, res: Response) => {
     if (req.session.user) {
-      res.json({
+      return res.json({
         isAuthenticated: true,
         user: req.session.user,
       });
-    } else {
-      res.json({
-        isAuthenticated: false,
-        user: null,
+    }
+
+    if (DEV_BYPASS) {
+      req.session.user = DEV_USER;
+      return res.json({
+        isAuthenticated: true,
+        user: DEV_USER,
       });
     }
+
+    res.json({
+      isAuthenticated: false,
+      user: null,
+    });
   });
 
   app.post("/api/auth/logout", async (req: Request, res: Response) => {
@@ -170,23 +199,28 @@ export function setupAuth(app: Express) {
       }
     });
 
-    if (idToken) {
-      const baseUrl = getBaseUrl(req);
-      const logoutUrl = new URL(urls.logout);
-      logoutUrl.searchParams.set("id_token_hint", idToken);
-      logoutUrl.searchParams.set("post_logout_redirect_uri", baseUrl);
-
-      res.json({ logoutUrl: logoutUrl.toString() });
-    } else {
-      res.json({ logoutUrl: "/" });
+    if (DEV_BYPASS || !idToken) {
+      return res.json({ logoutUrl: "/" });
     }
+
+    const baseUrl = getBaseUrl(req);
+    const logoutUrl = new URL(urls.logout);
+    logoutUrl.searchParams.set("id_token_hint", idToken);
+    logoutUrl.searchParams.set("post_logout_redirect_uri", baseUrl);
+
+    res.json({ logoutUrl: logoutUrl.toString() });
   });
 }
 
 export function requireAuth(req: Request, res: Response, next: NextFunction) {
   if (req.session.user) {
-    next();
-  } else {
-    res.status(401).json({ message: "No autenticado" });
+    return next();
   }
+
+  if (DEV_BYPASS) {
+    req.session.user = DEV_USER;
+    return next();
+  }
+
+  res.status(401).json({ message: "No autenticado" });
 }
