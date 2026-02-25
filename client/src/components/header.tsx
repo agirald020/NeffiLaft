@@ -1,4 +1,4 @@
-import { Bell, User, LogOut, Shield, Landmark, ChevronDown } from "lucide-react";
+import { Bell, User, LogOut, Shield, Landmark, Grid3X3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/use-auth";
 import { 
@@ -41,16 +41,14 @@ export default function Header() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex-shrink-0 animate-float cursor-pointer group focus:outline-none"
+                  className="flex-shrink-0 cursor-pointer group focus:outline-none"
                   data-testid="button-module-selector"
                 >
-                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30 group-hover:bg-white/30 transition-all duration-300 relative">
+                  <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-3 border border-white/30 group-hover:bg-white/30 transition-all duration-300 flex items-center space-x-2">
                     <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
                       <span className="text-red-600 font-bold text-lg">N</span>
                     </div>
-                    <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-white/90 rounded-full flex items-center justify-center shadow-sm">
-                      <ChevronDown className="w-3 h-3 text-gray-600" />
-                    </div>
+                    <Grid3X3 className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
                   </div>
                 </button>
               </DropdownMenuTrigger>
