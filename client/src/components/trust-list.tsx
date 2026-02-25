@@ -63,7 +63,7 @@ export default function TrustList({ trusts, isLoading }: TrustListProps) {
       {trusts.map((trust, index) => (
         <Link key={trust.id} href={`/trust/${trust.id}`}>
           <div 
-            className="transition-modern bg-gradient-surface hover:shadow-modern-lg cursor-pointer rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/60 hover:border-blue-300 dark:hover:border-blue-600 group"
+            className="transition-modern bg-gradient-surface hover:shadow-modern-lg cursor-pointer rounded-2xl p-6 border border-gray-200/60 dark:border-gray-700/60 hover:border-red-300 dark:hover:border-red-600 group"
             data-testid={`trust-item-${trust.id}`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
@@ -79,7 +79,7 @@ export default function TrustList({ trusts, isLoading }: TrustListProps) {
               <div className="flex-1 min-w-0">
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex-1">
-                    <h4 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors mb-1" data-testid={`trust-name-${trust.id}`}>
+                    <h4 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-red-600 dark:group-hover:text-red-400 transition-colors mb-1" data-testid={`trust-name-${trust.id}`}>
                       {trust.name}
                     </h4>
                     <p className="text-sm text-gray-600 dark:text-gray-400 font-medium">
@@ -88,7 +88,7 @@ export default function TrustList({ trusts, isLoading }: TrustListProps) {
                   </div>
                   <div className="flex items-center space-x-3">
                     {getStatusBadge(trust.status)}
-                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-blue-500 transition-colors" />
+                    <ChevronRight className="h-5 w-5 text-gray-400 group-hover:text-red-500 transition-colors" />
                   </div>
                 </div>
                 

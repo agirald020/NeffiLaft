@@ -105,7 +105,6 @@ export default function EventList({ trustId, events }: EventListProps) {
         return <MessageCircle className="text-sm" />;
       case 'servicio_cliente':
         return <Headphones className="text-sm" />;
-      // Legacy types for backwards compatibility
       case 'junta':
         return <Users className="text-sm" />;
       case 'reunion':
@@ -122,11 +121,11 @@ export default function EventList({ trustId, events }: EventListProps) {
       case 'actuacion_procesal':
         return 'bg-red-100 text-red-600';
       case 'agenda':
-        return 'bg-blue-100 text-blue-600';
+        return 'bg-gray-200 text-gray-700';
       case 'bienes':
         return 'bg-green-100 text-green-600';
       case 'cartera':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-red-100 text-red-700';
       case 'cartera_comisiones':
         return 'bg-yellow-100 text-yellow-600';
       case 'comite':
@@ -136,7 +135,7 @@ export default function EventList({ trustId, events }: EventListProps) {
       case 'documento_fisico':
         return 'bg-slate-100 text-slate-600';
       case 'email':
-        return 'bg-blue-100 text-blue-600';
+        return 'bg-gray-200 text-gray-700';
       case 'general':
         return 'bg-gray-100 text-gray-600';
       case 'informe_constructor':
@@ -146,22 +145,21 @@ export default function EventList({ trustId, events }: EventListProps) {
       case 'llamada':
         return 'bg-cyan-100 text-cyan-600';
       case 'modificacion_contractual':
-        return 'bg-indigo-100 text-indigo-600';
+        return 'bg-red-200 text-red-700';
       case 'proceso_juridico':
         return 'bg-red-100 text-red-600';
       case 'providencias_judiciales':
         return 'bg-red-100 text-red-600';
       case 'reunion_formal':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-gray-200 text-gray-700';
       case 'reunion_informal':
         return 'bg-pink-100 text-pink-600';
       case 'servicio_cliente':
         return 'bg-green-100 text-green-600';
-      // Legacy types for backwards compatibility
       case 'junta':
-        return 'bg-blue-100 text-blue-600';
+        return 'bg-gray-200 text-gray-700';
       case 'reunion':
-        return 'bg-purple-100 text-purple-600';
+        return 'bg-gray-200 text-gray-700';
       case 'visita':
         return 'bg-orange-100 text-orange-600';
       default:
@@ -174,7 +172,7 @@ export default function EventList({ trustId, events }: EventListProps) {
       case 'realizado':
         return <Badge className="bg-green-100 text-green-800">Realizado</Badge>;
       case 'programado':
-        return <Badge className="bg-blue-100 text-blue-800">Programado</Badge>;
+        return <Badge className="bg-gray-200 text-gray-800">Programado</Badge>;
       case 'cancelado':
         return <Badge className="bg-red-100 text-red-800">Cancelado</Badge>;
       case 'reprogramado':
@@ -224,7 +222,6 @@ export default function EventList({ trustId, events }: EventListProps) {
         return 'Reunión Informal';
       case 'servicio_cliente':
         return 'Servicio al Cliente';
-      // Legacy types for backwards compatibility
       case 'junta':
         return 'Junta';
       case 'reunion':
@@ -249,7 +246,7 @@ export default function EventList({ trustId, events }: EventListProps) {
         <h3 className="text-lg font-semibold text-gray-900">Libro de Anotaciones - Eventos</h3>
         <Button 
           onClick={openNewEventModal}
-          className="bg-blue-600 text-white hover:bg-blue-700 transition-colors flex items-center space-x-2"
+          className="btn-gradient-primary text-white transition-colors flex items-center space-x-2"
           data-testid="button-new-event"
         >
           <Plus className="w-4 h-4" />
@@ -257,7 +254,6 @@ export default function EventList({ trustId, events }: EventListProps) {
         </Button>
       </div>
 
-      {/* Event Filters */}
       <div className="bg-gray-50 rounded-lg p-4 mb-6">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
@@ -287,7 +283,6 @@ export default function EventList({ trustId, events }: EventListProps) {
                 <SelectItem value="reunion_formal">Reunión Formal</SelectItem>
                 <SelectItem value="reunion_informal">Reunión Informal</SelectItem>
                 <SelectItem value="servicio_cliente">Servicio al Cliente</SelectItem>
-                {/* Legacy types for backwards compatibility */}
                 <SelectItem value="junta">Junta</SelectItem>
                 <SelectItem value="reunion">Reunión</SelectItem>
                 <SelectItem value="visita">Visita</SelectItem>
@@ -331,7 +326,6 @@ export default function EventList({ trustId, events }: EventListProps) {
         </div>
       </div>
 
-      {/* Events Timeline */}
       <div className="space-y-4">
         {filteredEvents.length === 0 ? (
           <div className="text-center py-12 text-gray-500" data-testid="empty-events">
@@ -370,7 +364,7 @@ export default function EventList({ trustId, events }: EventListProps) {
                           {event.startTime} - {event.endTime}
                         </span>
                       )}
-                      <span className="flex items-center text-blue-600" data-testid={`event-created-by-${event.id}`}>
+                      <span className="flex items-center text-red-600" data-testid={`event-created-by-${event.id}`}>
                         <User className="w-3 h-3 mr-1" />
                         {event.user.username}
                       </span>
@@ -425,7 +419,6 @@ export default function EventList({ trustId, events }: EventListProps) {
                     )}
                   </div>
                   
-                  {/* Evidencia fotográfica y documentos */}
                   {Array.isArray(event.attachments) && event.attachments.length > 0 && (
                     <EvidenceGallery
                       evidence={event.attachments}

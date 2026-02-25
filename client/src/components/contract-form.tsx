@@ -75,8 +75,8 @@ export default function ContractForm({ trustId, contract }: ContractFormProps) {
   return (
     <div className="max-w-4xl">
       <div className="pb-6 border-b border-gray-200/60 mb-8">
-        <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3 flex items-center space-x-2">
-          <ClipboardList className="w-6 h-6 text-blue-600" />
+        <h3 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-gray-800 bg-clip-text text-transparent mb-3 flex items-center space-x-2">
+          <ClipboardList className="w-6 h-6 text-red-600" />
           <span>Información del Contrato</span>
         </h3>
         <p className="text-base text-gray-600 dark:text-gray-400">
