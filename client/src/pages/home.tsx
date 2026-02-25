@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import Header from "@/components/header";
 import TrustSearch from "@/components/trust-search";
 import TrustList from "@/components/trust-list";
 import type { Trust } from "@shared/schema";
@@ -25,9 +23,7 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      
+    <div>
       <div className="relative bg-gradient-to-br from-red-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900/80 dark:to-gray-950">
         <div className="absolute inset-0 bg-grid-gray-100/50 dark:bg-grid-gray-800/50 [background-image:radial-gradient(circle,rgba(220,38,38,0.06)_1px,transparent_1px)] [background-size:24px_24px]"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
