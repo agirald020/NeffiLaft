@@ -7,3 +7,4 @@ vite.config.ts.*
 # Environment variables (no subir a git)
 .env
 .env.local
+backend/target
