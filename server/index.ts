@@ -4,7 +4,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 
-const SPRING_BOOT_URL = process.env.SPRING_BOOT_URL || "http://localhost:8091";
+const SPRING_BOOT_URL = process.env.SPRING_BOOT_URL || "http://localhost:8080";
 const IS_DEV = process.env.NODE_ENV === "development";
 const AUTH_BYPASS = process.env.AUTH_BYPASS === "true";
 
@@ -56,7 +56,7 @@ app.use(
         console.error("❌ Spring Boot no disponible:", err.message);
         res.status(503).json({
           error: "Backend Spring Boot no disponible",
-          message: "Asegúrese de que el workflow 'Spring Boot Backend' esté corriendo en el puerto 8091.",
+          message: "Asegúrese de que el workflow 'Spring Boot Backend' esté corriendo en el puerto 8080.",
         });
       },
     },

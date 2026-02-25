@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, CheckCircle, XCircle, Search, Users, FileText, Building2, Briefcase, ClipboardList, Info, Calendar, Users2 } from "lucide-react";
-import Header from "@/components/header";
 import ContractForm from "@/components/contract-form";
 import EventList from "@/components/event-list";
 import type { Trust, Contract, EventWithUser } from "@shared/schema";
@@ -66,15 +65,12 @@ export default function TrustDetails() {
 
   if (trustLoading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="animate-pulse">
-            <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
-            <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
-            <div className="bg-white rounded-lg p-6">
-              <div className="h-64 bg-gray-200 rounded"></div>
-            </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-gray-200 rounded w-1/4 mb-8"></div>
+          <div className="bg-white rounded-lg p-6">
+            <div className="h-64 bg-gray-200 rounded"></div>
           </div>
         </div>
       </div>
@@ -83,20 +79,17 @@ export default function TrustDetails() {
 
   if (!trust) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold text-gray-900">
-              Fideicomiso no encontrado
-            </h2>
-            <Link href="/">
-              <Button className="mt-4" data-testid="button-back-home">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Volver al inicio
-              </Button>
-            </Link>
-          </div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-semibold text-gray-900">
+            Fideicomiso no encontrado
+          </h2>
+          <Link href="/">
+            <Button className="mt-4" data-testid="button-back-home">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Volver al inicio
+            </Button>
+          </Link>
         </div>
       </div>
     );
@@ -128,9 +121,7 @@ export default function TrustDetails() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      
+    <div className="bg-background">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-6">
           <Link href="/">
@@ -166,7 +157,7 @@ export default function TrustDetails() {
                 <TabsList className="h-auto p-0 bg-transparent grid grid-cols-4 gap-0">
                   <TabsTrigger 
                     value="info" 
-                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-purple-50 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-gray-50 data-[state=active]:border-b-2 data-[state=active]:border-red-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
                     data-testid="tab-info"
                   >
                     <Info className="w-4 h-4" />
@@ -175,7 +166,7 @@ export default function TrustDetails() {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="contract" 
-                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-purple-50 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-gray-50 data-[state=active]:border-b-2 data-[state=active]:border-red-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
                     data-testid="tab-contract"
                   >
                     <FileText className="w-4 h-4" />
@@ -184,7 +175,7 @@ export default function TrustDetails() {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="participants" 
-                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-purple-50 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-gray-50 data-[state=active]:border-b-2 data-[state=active]:border-red-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
                     data-testid="tab-participants"
                   >
                     <Users2 className="w-4 h-4" />
@@ -193,7 +184,7 @@ export default function TrustDetails() {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="events" 
-                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-50 data-[state=active]:to-purple-50 data-[state=active]:border-b-2 data-[state=active]:border-blue-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
+                    className="flex items-center space-x-2 data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-50 data-[state=active]:to-gray-50 data-[state=active]:border-b-2 data-[state=active]:border-red-500 rounded-none py-4 px-4 hover:bg-gray-50 transition-all duration-200"
                     data-testid="tab-events"
                   >
                     <Calendar className="w-4 h-4" />
@@ -314,8 +305,8 @@ export default function TrustDetails() {
               <TabsContent value="participants" className="mt-0">
                 <div className="max-w-4xl">
                   <div className="pb-6 border-b border-gray-200/60 mb-8">
-                    <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-3">
-                      👥 Participantes del Fideicomiso
+                    <h3 className="text-2xl font-bold bg-gradient-to-r from-red-600 to-gray-800 bg-clip-text text-transparent mb-3">
+                      Participantes del Fideicomiso
                     </h3>
                     <p className="text-base text-gray-600 dark:text-gray-400">
                       Información detallada de fideicomitentes y beneficiarios con sus porcentajes de participación
@@ -327,7 +318,7 @@ export default function TrustDetails() {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
-                          <Building2 className="w-5 h-5 text-blue-600" />
+                          <Building2 className="w-5 h-5 text-red-600" />
                           <span>Fideicomitentes</span>
                         </h4>
                         {((trust?.trustors as any) || []).length > 1 && (
@@ -338,7 +329,7 @@ export default function TrustDetails() {
                               placeholder="Buscar fideicomitente..."
                               value={participantSearchQuery}
                               onChange={(e) => setParticipantSearchQuery(e.target.value)}
-                              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                               data-testid="input-trustor-search"
                             />
                           </div>
@@ -406,13 +397,13 @@ export default function TrustDetails() {
                                                a 15.9155 15.9155 0 0 1 0 31.831
                                                a 15.9155 15.9155 0 0 1 0 -31.831"
                                               fill="none"
-                                              stroke="#3b82f6"
+                                              stroke="#dc2626"
                                               strokeWidth="4"
                                               strokeDasharray={`${percentage}, 100`}
                                             />
                                           </svg>
                                         </div>
-                                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-400" data-testid={`participant-trustor-percentage-${index}`}>
+                                        <span className="text-sm font-semibold text-red-600 dark:text-red-400" data-testid={`participant-trustor-percentage-${index}`}>
                                           {percentage.toFixed(2)}%
                                         </span>
                                       </div>
@@ -437,7 +428,7 @@ export default function TrustDetails() {
                       
                       {/* Total Verification for Trustors */}
                       {((trust?.trustors as any) || []).length > 1 && (
-                        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-800/50 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <div className="mt-6 p-4 bg-red-50 dark:bg-red-800/50 rounded-lg border border-red-200 dark:border-red-700">
                           <div className="flex items-center justify-between">
                             <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
                               Total de participaciones fideicomitentes:
@@ -457,7 +448,7 @@ export default function TrustDetails() {
                     <div>
                       <div className="flex items-center justify-between mb-4">
                         <h4 className="text-xl font-semibold text-gray-800 dark:text-white flex items-center space-x-2">
-                          <Briefcase className="w-5 h-5 text-purple-600" />
+                          <Briefcase className="w-5 h-5 text-gray-700" />
                           <span>Beneficiarios</span>
                         </h4>
                         <div className="flex items-center space-x-2">
@@ -467,7 +458,7 @@ export default function TrustDetails() {
                             placeholder="Buscar por nombre o NIT..."
                             value={participantSearchQuery}
                             onChange={(e) => setParticipantSearchQuery(e.target.value)}
-                            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                            className="px-3 py-1.5 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                             data-testid="input-participant-search"
                           />
                         </div>
@@ -629,7 +620,7 @@ export default function TrustDetails() {
                       <h4 className="text-xl font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
                         🏛️ Fiduciaria
                       </h4>
-                      <div className="bg-gradient-to-r from-purple-50 to-violet-50 dark:from-purple-900/20 dark:to-violet-900/20 rounded-xl p-6 border border-purple-200/60 dark:border-purple-700/60">
+                      <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-900/20 dark:to-gray-800/20 rounded-xl p-6 border border-gray-200/60 dark:border-gray-700/60">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h5 className="text-lg font-semibold text-gray-900 dark:text-white mb-2" data-testid="participant-fiduciary-name">
@@ -640,7 +631,7 @@ export default function TrustDetails() {
                             </p>
                           </div>
                           <div className="flex items-center ml-6">
-                            <div className="bg-purple-100 dark:bg-purple-800/30 text-purple-800 dark:text-purple-200 px-4 py-2 rounded-full text-sm font-semibold">
+                            <div className="bg-gray-200 dark:bg-gray-800/30 text-gray-800 dark:text-gray-200 px-4 py-2 rounded-full text-sm font-semibold">
                               Administrador
                             </div>
                           </div>

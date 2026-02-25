@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import Header from "@/components/header";
 import TrustSearch from "@/components/trust-search";
 import TrustList from "@/components/trust-list";
 import type { Trust } from "@shared/schema";
@@ -25,15 +23,12 @@ export default function Home() {
   });
 
   return (
-    <div className="min-h-screen">
-      <Header />
-      
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-blue-900/20 dark:to-purple-900/20">
-        <div className="absolute inset-0 bg-grid-gray-100/50 dark:bg-grid-gray-800/50 [background-image:radial-gradient(circle,rgba(59,130,246,0.1)_1px,transparent_1px)] [background-size:24px_24px]"></div>
+    <div>
+      <div className="relative bg-gradient-to-br from-red-50 via-gray-50 to-gray-100 dark:from-gray-900 dark:via-gray-900/80 dark:to-gray-950">
+        <div className="absolute inset-0 bg-grid-gray-100/50 dark:bg-grid-gray-800/50 [background-image:radial-gradient(circle,rgba(220,38,38,0.06)_1px,transparent_1px)] [background-size:24px_24px]"></div>
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 bg-clip-text text-transparent">
+            <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4 bg-gradient-to-r from-red-600 via-red-700 to-gray-900 bg-clip-text text-transparent">
               Consulta de Fideicomisos
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
@@ -49,7 +44,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Results Section */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="card-modern">
           <div className="px-8 py-6 border-b border-gray-200/60 dark:border-gray-700/60">

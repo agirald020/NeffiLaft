@@ -1,5 +1,5 @@
 server:
-  port: 8091
+  port: 8080
 
 spring:
   application:
@@ -21,7 +21,7 @@ app:
   bypass-auth: ${AUTH_BYPASS:false}
   cors:
     allowed-origins:
-      - "http://localhost10"
+      - "http://localhost:5000"
       - "http://localhost:5173"
       - "https://*.replit.dev"
       - "https://*.replit.app"

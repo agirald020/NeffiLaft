@@ -5,17 +5,22 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/components/auth-provider";
 import { LoginRequired } from "@/components/login-required";
+import Layout from "@/components/layout";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/home";
 import TrustDetails from "@/pages/trust-details";
+import ValidateClients from "@/pages/validate-clients";
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/trust/:id" component={TrustDetails} />
-      <Route component={NotFound} />
-    </Switch>
+    <Layout>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/trust/:id" component={TrustDetails} />
+        <Route path="/validar" component={ValidateClients} />
+        <Route component={NotFound} />
+      </Switch>
+    </Layout>
   );
 }
 

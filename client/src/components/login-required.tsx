@@ -15,7 +15,7 @@ export function LoginRequired({ children }: LoginRequiredProps) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600 mx-auto mb-4"></div>
           <p className="text-secondary">Verificando autenticación...</p>
         </div>
       </div>
@@ -27,23 +27,23 @@ export function LoginRequired({ children }: LoginRequiredProps) {
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <div className="mx-auto mb-4 w-16 h-16 bg-primary rounded-full flex items-center justify-center">
+            <div className="mx-auto mb-4 w-16 h-16 bg-gradient-primary rounded-full flex items-center justify-center">
               <Shield className="w-8 h-8 text-white" />
             </div>
             <CardTitle className="text-2xl font-bold text-gray-900">
-              NEFFI Trust
+              Neffi Laft
             </CardTitle>
             <CardDescription>
-              Sistema de Gestión Fiduciaria
+              Validación en Listas Restrictivas
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center space-y-4">
             <p className="text-secondary">
-              Debe autenticarse para acceder al sistema de gestión fiduciaria.
+              Debe autenticarse para acceder al sistema de validación en listas restrictivas.
             </p>
             <Button 
               onClick={login} 
-              className="w-full bg-primary hover:bg-blue-700 text-white flex items-center justify-center gap-2"
+              className="w-full btn-gradient-primary text-white flex items-center justify-center gap-2"
               data-testid="button-login"
             >
               <LogIn className="w-4 h-4" />
