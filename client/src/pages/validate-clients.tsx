@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, User, Hash, X, Building2, UserRound } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -58,23 +58,6 @@ export default function ValidateClients() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [searchContext, setSearchContext] = useState<{ type: string; value: string } | null>(null);
 
-  const validateByDocMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/laft/validate", {
-        documentType,
-        documentNumber: documentNumber.trim(),
-      });
-      return res.json() as Promise<RestrictiveListMatch[]>;
-    },
-    onSuccess: (data) => {
-      setResults(data);
-      setBulkResults(null);
-      setSearchContext({ type: "doc", value: `${documentType} ${documentNumber}` });
-      showResultToast(data.length);
-    },
-    onError: () => showErrorToast(),
-  });
-
   const buildFullName = () => {
     if (personType === "juridica") return companyName.trim();
     return [firstName, secondName, firstLastName, secondLastName]
@@ -83,17 +66,20 @@ export default function ValidateClients() {
       .join(" ");
   };
 
-  const validateByNameMutation = useMutation({
+  const validateMutation = useMutation({
     mutationFn: async () => {
       const fullName = buildFullName();
-      const res = await apiRequest("POST", "/api/laft/validate", { fullName });
+      const res = await apiRequest("POST", "/api/laft/validate", {
+        documentType,
+        documentNumber: documentNumber.trim(),
+        fullName: fullName || undefined,
+      });
       return res.json() as Promise<RestrictiveListMatch[]>;
     },
     onSuccess: (data) => {
-      const fullName = buildFullName();
       setResults(data);
       setBulkResults(null);
-      setSearchContext({ type: "name", value: fullName });
+      setSearchContext({ type: "individual", value: `${documentType} ${documentNumber}` });
       showResultToast(data.length);
     },
     onError: () => showErrorToast(),
@@ -148,37 +134,13 @@ export default function ValidateClients() {
     toast({ title: "Error", description: "No se pudo realizar la validación. Intente nuevamente.", variant: "destructive" });
   };
 
-  const handleDocSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!documentNumber.trim()) {
       toast({ title: "Campo requerido", description: "Ingrese el número de documento.", variant: "destructive" });
       return;
     }
-    validateByDocMutation.mutate();
-  };
-
-  const handleNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const fullName = buildFullName();
-    if (!fullName) {
-      toast({
-        title: "Campo requerido",
-        description: personType === "juridica"
-          ? "Ingrese la razón social."
-          : "Ingrese al menos el primer nombre y primer apellido.",
-        variant: "destructive",
-      });
-      return;
-    }
-    if (personType === "natural" && (!firstName.trim() || !firstLastName.trim())) {
-      toast({
-        title: "Campos requeridos",
-        description: "El primer nombre y primer apellido son obligatorios.",
-        variant: "destructive",
-      });
-      return;
-    }
-    validateByNameMutation.mutate();
+    validateMutation.mutate();
   };
 
   const handleBulkSubmit = (e: React.FormEvent) => {
@@ -265,8 +227,6 @@ export default function ValidateClients() {
     </div>
   );
 
-  const isPending = validateByDocMutation.isPending || validateByNameMutation.isPending;
-
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
       <div className="mb-8">
@@ -286,15 +246,11 @@ export default function ValidateClients() {
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-8">
-        <Tabs defaultValue="document" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="document" className="flex items-center space-x-2" data-testid="tab-document">
-              <Hash className="w-4 h-4" />
-              <span>Por Documento</span>
-            </TabsTrigger>
-            <TabsTrigger value="name" className="flex items-center space-x-2" data-testid="tab-name">
-              <User className="w-4 h-4" />
-              <span>Por Nombre</span>
+        <Tabs defaultValue="individual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="individual" className="flex items-center space-x-2" data-testid="tab-individual">
+              <Search className="w-4 h-4" />
+              <span>Validación Individual</span>
             </TabsTrigger>
             <TabsTrigger value="bulk" className="flex items-center space-x-2" data-testid="tab-bulk">
               <Upload className="w-4 h-4" />
@@ -302,62 +258,9 @@ export default function ValidateClients() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="document">
-            <form onSubmit={handleDocSubmit} className="space-y-5" data-testid="form-validate-document">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="documentType" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Tipo de Documento
-                  </Label>
-                  <Select value={documentType} onValueChange={setDocumentType}>
-                    <SelectTrigger id="documentType" data-testid="select-document-type">
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {documentTypes.map((dt) => (
-                        <SelectItem key={dt.value} value={dt.value} data-testid={`option-doc-type-${dt.value}`}>
-                          {dt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="documentNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Número de Documento
-                  </Label>
-                  <Input
-                    id="documentNumber"
-                    type="text"
-                    placeholder="Ej: 1023456789"
-                    value={documentNumber}
-                    onChange={(e) => setDocumentNumber(e.target.value)}
-                    className="h-10"
-                    data-testid="input-document-number"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    type="submit"
-                    disabled={validateByDocMutation.isPending}
-                    className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-                    data-testid="button-validate-doc"
-                  >
-                    {validateByDocMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    Validar
-                  </Button>
-                </div>
-              </div>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="name">
-            <form onSubmit={handleNameSubmit} className="space-y-5" data-testid="form-validate-name">
-              <div className="space-y-2 mb-4">
+          <TabsContent value="individual">
+            <form onSubmit={handleSubmit} className="space-y-6" data-testid="form-validate">
+              <div className="space-y-2">
                 <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Persona</Label>
                 <div className="flex space-x-3">
                   <button
@@ -389,8 +292,49 @@ export default function ValidateClients() {
                 </div>
               </div>
 
-              {personType === "juridica" ? (
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Identificación</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="documentType" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Tipo de Documento <span className="text-red-500">*</span>
+                    </Label>
+                    <Select value={documentType} onValueChange={setDocumentType}>
+                      <SelectTrigger id="documentType" data-testid="select-document-type">
+                        <SelectValue placeholder="Seleccionar tipo" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {documentTypes.map((dt) => (
+                          <SelectItem key={dt.value} value={dt.value} data-testid={`option-doc-type-${dt.value}`}>
+                            {dt.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="documentNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Número de Documento <span className="text-red-500">*</span>
+                    </Label>
+                    <Input
+                      id="documentNumber"
+                      type="text"
+                      placeholder="Ej: 1023456789"
+                      value={documentNumber}
+                      onChange={(e) => setDocumentNumber(e.target.value)}
+                      className="h-10"
+                      data-testid="input-document-number"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                  {personType === "juridica" ? "Datos de la Empresa" : "Datos Personales"}
+                </p>
+
+                {personType === "juridica" ? (
                   <div className="space-y-2">
                     <Label htmlFor="companyName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
                       Razón Social
@@ -405,99 +349,85 @@ export default function ValidateClients() {
                       data-testid="input-company-name"
                     />
                   </div>
-                  <div className="flex items-end">
-                    <Button
-                      type="submit"
-                      disabled={validateByNameMutation.isPending}
-                      className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-                      data-testid="button-validate-name"
-                    >
-                      {validateByNameMutation.isPending ? (
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      ) : (
-                        <Search className="w-4 h-4 mr-2" />
-                      )}
-                      Buscar
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-5">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Primer Nombre <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="firstName"
-                        type="text"
-                        placeholder="Ej: CARLOS"
-                        value={firstName}
-                        onChange={(e) => setFirstName(e.target.value)}
-                        className="h-10"
-                        data-testid="input-first-name"
-                      />
+                ) : (
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Primer Nombre
+                        </Label>
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="Ej: CARLOS"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-first-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="secondName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Segundo Nombre
+                        </Label>
+                        <Input
+                          id="secondName"
+                          type="text"
+                          placeholder="Ej: ANDRÉS"
+                          value={secondName}
+                          onChange={(e) => setSecondName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-second-name"
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="secondName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Segundo Nombre
-                      </Label>
-                      <Input
-                        id="secondName"
-                        type="text"
-                        placeholder="Ej: ANDRÉS"
-                        value={secondName}
-                        onChange={(e) => setSecondName(e.target.value)}
-                        className="h-10"
-                        data-testid="input-second-name"
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <div className="space-y-2">
-                      <Label htmlFor="firstLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Primer Apellido <span className="text-red-500">*</span>
-                      </Label>
-                      <Input
-                        id="firstLastName"
-                        type="text"
-                        placeholder="Ej: MARTÍNEZ"
-                        value={firstLastName}
-                        onChange={(e) => setFirstLastName(e.target.value)}
-                        className="h-10"
-                        data-testid="input-first-lastname"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="secondLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Segundo Apellido
-                      </Label>
-                      <Input
-                        id="secondLastName"
-                        type="text"
-                        placeholder="Ej: LÓPEZ"
-                        value={secondLastName}
-                        onChange={(e) => setSecondLastName(e.target.value)}
-                        className="h-10"
-                        data-testid="input-second-lastname"
-                      />
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Primer Apellido
+                        </Label>
+                        <Input
+                          id="firstLastName"
+                          type="text"
+                          placeholder="Ej: MARTÍNEZ"
+                          value={firstLastName}
+                          onChange={(e) => setFirstLastName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-first-lastname"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="secondLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Segundo Apellido
+                        </Label>
+                        <Input
+                          id="secondLastName"
+                          type="text"
+                          placeholder="Ej: LÓPEZ"
+                          value={secondLastName}
+                          onChange={(e) => setSecondLastName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-second-lastname"
+                        />
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    type="submit"
-                    disabled={validateByNameMutation.isPending}
-                    className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-                    data-testid="button-validate-name"
-                  >
-                    {validateByNameMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    Buscar por Nombre
-                  </Button>
-                </div>
-              )}
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={validateMutation.isPending}
+                className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+                data-testid="button-validate"
+              >
+                {validateMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                Validar en Listas Restrictivas
+              </Button>
             </form>
           </TabsContent>
 
@@ -639,9 +569,7 @@ export default function ValidateClients() {
               <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sin reportes</h3>
               <p className="text-gray-500 max-w-md mx-auto">
-                {searchContext?.type === "doc"
-                  ? <>El documento <span className="font-semibold">{searchContext.value}</span> no presenta coincidencias.</>
-                  : <>El nombre <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias.</>}
+                El documento <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias en las listas restrictivas consultadas.
               </p>
             </div>
           ) : (
