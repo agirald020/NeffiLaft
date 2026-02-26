@@ -75,6 +75,7 @@ export default function ValidateClients() {
       const res = await fetch("/api/laft/validate/bulk", {
         method: "POST",
         body: formData,
+        credentials: "include",
       });
       if (!res.ok) throw new Error("Upload failed");
       return res.json() as Promise<BulkResult[]>;
