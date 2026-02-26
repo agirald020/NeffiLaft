@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { getAuthHeader } from "@/lib/keycloak";
 
 interface RestrictiveListMatch {
   id: string;
@@ -74,6 +75,7 @@ export default function ValidateClients() {
       formData.append("file", selectedFile);
       const res = await fetch("/api/laft/validate/bulk", {
         method: "POST",
+        headers: { ...getAuthHeader() },
         body: formData,
         credentials: "include",
       });
