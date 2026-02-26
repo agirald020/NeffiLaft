@@ -145,12 +145,6 @@ export default function ValidateClients() {
     }
   };
 
-  const getScoreBadge = (score: number) => {
-    if (score >= 95) return "bg-red-100 text-red-800 border-red-200";
-    if (score >= 80) return "bg-orange-100 text-orange-800 border-orange-200";
-    return "bg-yellow-100 text-yellow-800 border-yellow-200";
-  };
-
   const getMatchLabel = (type: string) => {
     if (type === "Exacto") return "bg-red-600 text-white";
     return "bg-orange-500 text-white";
@@ -166,7 +160,7 @@ export default function ValidateClients() {
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lista</th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fuente</th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Coincidencia</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Permite Vinculación</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -198,8 +192,8 @@ export default function ValidateClients() {
                 </span>
               </td>
               <td className="px-6 py-4">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${getScoreBadge(match.matchScore)}`}>
-                  {match.matchScore}%
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-800 border-red-200" data-testid={`vinculacion-${match.id}`}>
+                  NO
                 </span>
               </td>
             </tr>
@@ -561,9 +555,12 @@ export default function ValidateClients() {
             <div className="p-12 text-center" data-testid="status-no-results">
               <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sin reportes</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
+              <p className="text-gray-500 max-w-md mx-auto mb-4">
                 El documento <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias en las listas restrictivas consultadas.
               </p>
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border bg-green-100 text-green-800 border-green-200" data-testid="vinculacion-permitida">
+                Permite Vinculación: SÍ
+              </span>
             </div>
           ) : (
             renderResultsTable(results)
