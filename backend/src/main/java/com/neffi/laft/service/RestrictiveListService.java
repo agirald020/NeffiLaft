@@ -23,20 +23,15 @@ public class RestrictiveListService {
     private final InMemoryRestrictiveListRepository repository;
 
     public List<RestrictiveListEntry> validateClient(ValidateClientDto dto) {
-        log.info("Validando cliente - Tipo: {}, Documento: {}, Nombre: {}",
-            dto.getDocumentType(), dto.getDocumentNumber(), dto.getFullName());
+        log.info("Validando cliente - Documento: {}, Nombre: {}",
+            dto.getDocumentNumber(), dto.getFullName());
 
         List<RestrictiveListEntry> results = new ArrayList<>();
 
         boolean hasDocument = dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank();
         boolean hasName = dto.getFullName() != null && !dto.getFullName().isBlank();
 
-        if (hasDocument && dto.getDocumentType() != null && !dto.getDocumentType().isBlank()) {
-            results = repository.findByDocumentTypeAndNumber(dto.getDocumentType(), dto.getDocumentNumber());
-            if (results.isEmpty()) {
-                results = repository.findByDocumentNumber(dto.getDocumentNumber());
-            }
-        } else if (hasDocument) {
+        if (hasDocument) {
             results = repository.findByDocumentNumber(dto.getDocumentNumber());
         }
 
@@ -67,17 +62,15 @@ public class RestrictiveListService {
                 Row row = sheet.getRow(i);
                 if (row == null) continue;
 
-                String docType = getCellString(row, 0);
-                String docNumber = getCellString(row, 1);
-                String name = getCellString(row, 2);
+                String docNumber = getCellString(row, 0);
+                String name = getCellString(row, 1);
 
-                if (docType.isBlank() && docNumber.isBlank() && name.isBlank()) continue;
+                if (docNumber.isBlank() && name.isBlank()) continue;
 
-                ValidateClientDto dto = new ValidateClientDto(docType, docNumber, name);
+                ValidateClientDto dto = new ValidateClientDto(docNumber, name);
                 List<RestrictiveListEntry> matches = validateClient(dto);
 
                 results.add(BulkValidateResultDto.builder()
-                    .queryDocumentType(docType)
                     .queryDocumentNumber(docNumber)
                     .queryFullName(name)
                     .matchCount(matches.size())

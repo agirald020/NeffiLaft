@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -27,25 +20,15 @@ interface RestrictiveListMatch {
 }
 
 interface BulkResult {
-  queryDocumentType: string;
   queryDocumentNumber: string;
   queryFullName: string;
   matchCount: number;
   matches: RestrictiveListMatch[];
 }
 
-const documentTypes = [
-  { value: "CC", label: "Cédula de Ciudadanía" },
-  { value: "CE", label: "Cédula de Extranjería" },
-  { value: "NIT", label: "NIT" },
-  { value: "PP", label: "Pasaporte" },
-  { value: "TI", label: "Tarjeta de Identidad" },
-];
-
 export default function ValidateClients() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [documentType, setDocumentType] = useState("CC");
   const [documentNumber, setDocumentNumber] = useState("");
   const [personType, setPersonType] = useState<"natural" | "juridica">("natural");
   const [firstName, setFirstName] = useState("");
@@ -70,7 +53,6 @@ export default function ValidateClients() {
     mutationFn: async () => {
       const fullName = buildFullName();
       const res = await apiRequest("POST", "/api/laft/validate", {
-        documentType,
         documentNumber: documentNumber.trim(),
         fullName: fullName || undefined,
       });
@@ -79,7 +61,7 @@ export default function ValidateClients() {
     onSuccess: (data) => {
       setResults(data);
       setBulkResults(null);
-      setSearchContext({ type: "individual", value: `${documentType} ${documentNumber}` });
+      setSearchContext({ type: "individual", value: documentNumber });
       showResultToast(data.length);
     },
     onError: () => showErrorToast(),
@@ -294,38 +276,19 @@ export default function ValidateClients() {
 
               <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
                 <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Identificación</p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor="documentType" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Tipo de Documento <span className="text-red-500">*</span>
-                    </Label>
-                    <Select value={documentType} onValueChange={setDocumentType}>
-                      <SelectTrigger id="documentType" data-testid="select-document-type">
-                        <SelectValue placeholder="Seleccionar tipo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {documentTypes.map((dt) => (
-                          <SelectItem key={dt.value} value={dt.value} data-testid={`option-doc-type-${dt.value}`}>
-                            {dt.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="documentNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Número de Documento <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="documentNumber"
-                      type="text"
-                      placeholder="Ej: 1023456789"
-                      value={documentNumber}
-                      onChange={(e) => setDocumentNumber(e.target.value)}
-                      className="h-10"
-                      data-testid="input-document-number"
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="documentNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Número de Documento <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="documentNumber"
+                    type="text"
+                    placeholder="Ej: 1023456789"
+                    value={documentNumber}
+                    onChange={(e) => setDocumentNumber(e.target.value)}
+                    className="h-10"
+                    data-testid="input-document-number"
+                  />
                 </div>
               </div>
 
@@ -478,7 +441,7 @@ export default function ValidateClients() {
                           Haga clic para seleccionar un archivo Excel
                         </p>
                         <p className="text-xs text-gray-400">
-                          Formato: .xlsx con columnas: Tipo Documento, Número Documento, Nombre
+                          Formato: .xlsx con columnas: Número Documento, Nombre
                         </p>
                       </>
                     )}
@@ -493,22 +456,18 @@ export default function ValidateClients() {
                         <tr className="border-b border-gray-200 dark:border-gray-700">
                           <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna A</th>
                           <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna B</th>
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna C</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b border-gray-100 dark:border-gray-700/50 font-semibold text-gray-700 dark:text-gray-300">
-                          <td className="py-1 px-2">Tipo Documento</td>
                           <td className="py-1 px-2">Número Documento</td>
                           <td className="py-1 px-2">Nombre</td>
                         </tr>
                         <tr className="text-gray-500">
-                          <td className="py-1 px-2">CC</td>
                           <td className="py-1 px-2">1023456789</td>
                           <td className="py-1 px-2">CARLOS MARTÍNEZ</td>
                         </tr>
                         <tr className="text-gray-500">
-                          <td className="py-1 px-2">NIT</td>
                           <td className="py-1 px-2">900123456</td>
                           <td className="py-1 px-2">INVERSIONES EL DORADO</td>
                         </tr>
@@ -625,9 +584,7 @@ export default function ValidateClients() {
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {result.queryDocumentType && result.queryDocumentNumber
-                        ? `${result.queryDocumentType} ${result.queryDocumentNumber}`
-                        : result.queryFullName || "—"}
+                      {result.queryDocumentNumber || result.queryFullName || "—"}
                       {result.queryFullName && result.queryDocumentNumber && (
                         <span className="text-gray-400 font-normal"> — {result.queryFullName}</span>
                       )}

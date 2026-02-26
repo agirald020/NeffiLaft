@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ValidateClientDto {
-    private String documentType;
     private String documentNumber;
     private String fullName;
 }
