@@ -13,7 +13,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BulkValidateResultDto {
-    private String queryDocumentType;
     private String queryDocumentNumber;
     private String queryFullName;
     private int matchCount;
