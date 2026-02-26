@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -441,7 +441,7 @@ export default function ValidateClients() {
                           Haga clic para seleccionar un archivo Excel
                         </p>
                         <p className="text-xs text-gray-400">
-                          Formato: .xlsx con columnas: Número Documento, Nombre
+                          Formato: .xlsx con columnas: N° Documento, Primer Nombre, Segundo Nombre, Primer Apellido, Segundo Apellido, Razón Social
                         </p>
                       </>
                     )}
@@ -449,26 +449,60 @@ export default function ValidateClients() {
                 </div>
 
                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Formato esperado del archivo:</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Formato esperado del archivo:</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-3"
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.href = "/api/laft/validate/bulk/template";
+                        link.download = "plantilla_validacion_listas.xlsx";
+                        link.click();
+                      }}
+                      data-testid="button-download-template"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Descargar Plantilla
+                    </Button>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="text-xs w-full">
                       <thead>
                         <tr className="border-b border-gray-200 dark:border-gray-700">
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna A</th>
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna B</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col A</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col B</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col C</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col D</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col E</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col F</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b border-gray-100 dark:border-gray-700/50 font-semibold text-gray-700 dark:text-gray-300">
-                          <td className="py-1 px-2">Número Documento</td>
-                          <td className="py-1 px-2">Nombre</td>
+                          <td className="py-1 px-2">N° Documento</td>
+                          <td className="py-1 px-2">Primer Nombre</td>
+                          <td className="py-1 px-2">Segundo Nombre</td>
+                          <td className="py-1 px-2">Primer Apellido</td>
+                          <td className="py-1 px-2">Segundo Apellido</td>
+                          <td className="py-1 px-2">Razón Social</td>
                         </tr>
                         <tr className="text-gray-500">
                           <td className="py-1 px-2">1023456789</td>
-                          <td className="py-1 px-2">CARLOS MARTÍNEZ</td>
+                          <td className="py-1 px-2">CARLOS</td>
+                          <td className="py-1 px-2">ANDRÉS</td>
+                          <td className="py-1 px-2">MARTÍNEZ</td>
+                          <td className="py-1 px-2">LÓPEZ</td>
+                          <td className="py-1 px-2"></td>
                         </tr>
                         <tr className="text-gray-500">
                           <td className="py-1 px-2">900123456</td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
                           <td className="py-1 px-2">INVERSIONES EL DORADO</td>
                         </tr>
                       </tbody>
