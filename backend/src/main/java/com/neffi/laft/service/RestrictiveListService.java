@@ -38,8 +38,15 @@ public class RestrictiveListService {
             }
         } else if (hasDocument) {
             results = repository.findByDocumentNumber(dto.getDocumentNumber());
-        } else if (hasName) {
-            results = repository.findByName(dto.getFullName());
+        }
+
+        if (hasName) {
+            List<RestrictiveListEntry> nameResults = repository.findByName(dto.getFullName());
+            for (RestrictiveListEntry entry : nameResults) {
+                if (results.stream().noneMatch(r -> r.getId().equals(entry.getId()))) {
+                    results.add(entry);
+                }
+            }
         }
 
         log.info("Encontradas {} coincidencias", results.size());
