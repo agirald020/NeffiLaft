@@ -1,17 +1,10 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, User, Hash, X } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -27,60 +20,48 @@ interface RestrictiveListMatch {
 }
 
 interface BulkResult {
-  queryDocumentType: string;
   queryDocumentNumber: string;
   queryFullName: string;
   matchCount: number;
   matches: RestrictiveListMatch[];
 }
 
-const documentTypes = [
-  { value: "CC", label: "Cédula de Ciudadanía" },
-  { value: "CE", label: "Cédula de Extranjería" },
-  { value: "NIT", label: "NIT" },
-  { value: "PP", label: "Pasaporte" },
-  { value: "TI", label: "Tarjeta de Identidad" },
-];
-
 export default function ValidateClients() {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [documentType, setDocumentType] = useState("CC");
   const [documentNumber, setDocumentNumber] = useState("");
-  const [searchName, setSearchName] = useState("");
+  const [personType, setPersonType] = useState<"natural" | "juridica">("natural");
+  const [firstName, setFirstName] = useState("");
+  const [secondName, setSecondName] = useState("");
+  const [firstLastName, setFirstLastName] = useState("");
+  const [secondLastName, setSecondLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [results, setResults] = useState<RestrictiveListMatch[] | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkResult[] | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [searchContext, setSearchContext] = useState<{ type: string; value: string } | null>(null);
 
-  const validateByDocMutation = useMutation({
-    mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/laft/validate", {
-        documentType,
-        documentNumber: documentNumber.trim(),
-      });
-      return res.json() as Promise<RestrictiveListMatch[]>;
-    },
-    onSuccess: (data) => {
-      setResults(data);
-      setBulkResults(null);
-      setSearchContext({ type: "doc", value: `${documentType} ${documentNumber}` });
-      showResultToast(data.length);
-    },
-    onError: () => showErrorToast(),
-  });
+  const buildFullName = () => {
+    if (personType === "juridica") return companyName.trim();
+    return [firstName, secondName, firstLastName, secondLastName]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ");
+  };
 
-  const validateByNameMutation = useMutation({
+  const validateMutation = useMutation({
     mutationFn: async () => {
+      const fullName = buildFullName();
       const res = await apiRequest("POST", "/api/laft/validate", {
-        fullName: searchName.trim(),
+        documentNumber: documentNumber.trim(),
+        fullName: fullName || undefined,
       });
       return res.json() as Promise<RestrictiveListMatch[]>;
     },
     onSuccess: (data) => {
       setResults(data);
       setBulkResults(null);
-      setSearchContext({ type: "name", value: searchName });
+      setSearchContext({ type: "individual", value: documentNumber });
       showResultToast(data.length);
     },
     onError: () => showErrorToast(),
@@ -135,22 +116,13 @@ export default function ValidateClients() {
     toast({ title: "Error", description: "No se pudo realizar la validación. Intente nuevamente.", variant: "destructive" });
   };
 
-  const handleDocSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!documentNumber.trim()) {
       toast({ title: "Campo requerido", description: "Ingrese el número de documento.", variant: "destructive" });
       return;
     }
-    validateByDocMutation.mutate();
-  };
-
-  const handleNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!searchName.trim()) {
-      toast({ title: "Campo requerido", description: "Ingrese el nombre a consultar.", variant: "destructive" });
-      return;
-    }
-    validateByNameMutation.mutate();
+    validateMutation.mutate();
   };
 
   const handleBulkSubmit = (e: React.FormEvent) => {
@@ -173,12 +145,6 @@ export default function ValidateClients() {
     }
   };
 
-  const getScoreBadge = (score: number) => {
-    if (score >= 95) return "bg-red-100 text-red-800 border-red-200";
-    if (score >= 80) return "bg-orange-100 text-orange-800 border-orange-200";
-    return "bg-yellow-100 text-yellow-800 border-yellow-200";
-  };
-
   const getMatchLabel = (type: string) => {
     if (type === "Exacto") return "bg-red-600 text-white";
     return "bg-orange-500 text-white";
@@ -194,7 +160,7 @@ export default function ValidateClients() {
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lista</th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Fuente</th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Coincidencia</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Score</th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Permite Vinculación</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -226,8 +192,8 @@ export default function ValidateClients() {
                 </span>
               </td>
               <td className="px-6 py-4">
-                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${getScoreBadge(match.matchScore)}`}>
-                  {match.matchScore}%
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-800 border-red-200" data-testid={`vinculacion-${match.id}`}>
+                  NO
                 </span>
               </td>
             </tr>
@@ -236,8 +202,6 @@ export default function ValidateClients() {
       </table>
     </div>
   );
-
-  const isPending = validateByDocMutation.isPending || validateByNameMutation.isPending;
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl mx-auto">
@@ -258,15 +222,11 @@ export default function ValidateClients() {
       </div>
 
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-8">
-        <Tabs defaultValue="document" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="document" className="flex items-center space-x-2" data-testid="tab-document">
-              <Hash className="w-4 h-4" />
-              <span>Por Documento</span>
-            </TabsTrigger>
-            <TabsTrigger value="name" className="flex items-center space-x-2" data-testid="tab-name">
-              <User className="w-4 h-4" />
-              <span>Por Nombre</span>
+        <Tabs defaultValue="individual" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsTrigger value="individual" className="flex items-center space-x-2" data-testid="tab-individual">
+              <Search className="w-4 h-4" />
+              <span>Validación Individual</span>
             </TabsTrigger>
             <TabsTrigger value="bulk" className="flex items-center space-x-2" data-testid="tab-bulk">
               <Upload className="w-4 h-4" />
@@ -274,29 +234,45 @@ export default function ValidateClients() {
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="document">
-            <form onSubmit={handleDocSubmit} className="space-y-5" data-testid="form-validate-document">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="documentType" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Tipo de Documento
-                  </Label>
-                  <Select value={documentType} onValueChange={setDocumentType}>
-                    <SelectTrigger id="documentType" data-testid="select-document-type">
-                      <SelectValue placeholder="Seleccionar tipo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {documentTypes.map((dt) => (
-                        <SelectItem key={dt.value} value={dt.value} data-testid={`option-doc-type-${dt.value}`}>
-                          {dt.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+          <TabsContent value="individual">
+            <form onSubmit={handleSubmit} className="space-y-6" data-testid="form-validate">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Persona</Label>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setPersonType("natural")}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                      personType === "natural"
+                        ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
+                    }`}
+                    data-testid="button-person-natural"
+                  >
+                    <UserRound className="w-5 h-5" />
+                    <span className="text-sm font-medium">Persona Natural</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPersonType("juridica")}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                      personType === "juridica"
+                        ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
+                    }`}
+                    data-testid="button-person-juridica"
+                  >
+                    <Building2 className="w-5 h-5" />
+                    <span className="text-sm font-medium">Persona Jurídica</span>
+                  </button>
                 </div>
+              </div>
+
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">Identificación</p>
                 <div className="space-y-2">
                   <Label htmlFor="documentNumber" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Número de Documento
+                    Número de Documento <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="documentNumber"
@@ -308,58 +284,107 @@ export default function ValidateClients() {
                     data-testid="input-document-number"
                   />
                 </div>
-                <div className="flex items-end">
-                  <Button
-                    type="submit"
-                    disabled={validateByDocMutation.isPending}
-                    className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-                    data-testid="button-validate-doc"
-                  >
-                    {validateByDocMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    Validar
-                  </Button>
-                </div>
               </div>
-            </form>
-          </TabsContent>
 
-          <TabsContent value="name">
-            <form onSubmit={handleNameSubmit} className="space-y-5" data-testid="form-validate-name">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="searchName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Nombre del Tercero
-                  </Label>
-                  <Input
-                    id="searchName"
-                    type="text"
-                    placeholder="Ej: CARLOS MARTÍNEZ"
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                    className="h-10"
-                    data-testid="input-search-name"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <Button
-                    type="submit"
-                    disabled={validateByNameMutation.isPending}
-                    className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-                    data-testid="button-validate-name"
-                  >
-                    {validateByNameMutation.isPending ? (
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4 mr-2" />
-                    )}
-                    Buscar por Nombre
-                  </Button>
-                </div>
+              <div className="border-t border-gray-100 dark:border-gray-800 pt-5">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-4">
+                  {personType === "juridica" ? "Datos de la Empresa" : "Datos Personales"}
+                </p>
+
+                {personType === "juridica" ? (
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Razón Social
+                    </Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      placeholder="Ej: INVERSIONES EL DORADO S.A.S."
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="h-10"
+                      data-testid="input-company-name"
+                    />
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Primer Nombre
+                        </Label>
+                        <Input
+                          id="firstName"
+                          type="text"
+                          placeholder="Ej: CARLOS"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-first-name"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="secondName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Segundo Nombre
+                        </Label>
+                        <Input
+                          id="secondName"
+                          type="text"
+                          placeholder="Ej: ANDRÉS"
+                          value={secondName}
+                          onChange={(e) => setSecondName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-second-name"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="firstLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Primer Apellido
+                        </Label>
+                        <Input
+                          id="firstLastName"
+                          type="text"
+                          placeholder="Ej: MARTÍNEZ"
+                          value={firstLastName}
+                          onChange={(e) => setFirstLastName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-first-lastname"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="secondLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Segundo Apellido
+                        </Label>
+                        <Input
+                          id="secondLastName"
+                          type="text"
+                          placeholder="Ej: LÓPEZ"
+                          value={secondLastName}
+                          onChange={(e) => setSecondLastName(e.target.value)}
+                          className="h-10"
+                          data-testid="input-second-lastname"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
+
+              <Button
+                type="submit"
+                disabled={validateMutation.isPending}
+                className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+                data-testid="button-validate"
+              >
+                {validateMutation.isPending ? (
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                ) : (
+                  <Search className="w-4 h-4 mr-2" />
+                )}
+                Validar en Listas Restrictivas
+              </Button>
             </form>
           </TabsContent>
 
@@ -410,7 +435,7 @@ export default function ValidateClients() {
                           Haga clic para seleccionar un archivo Excel
                         </p>
                         <p className="text-xs text-gray-400">
-                          Formato: .xlsx con columnas: Tipo Documento, Número Documento, Nombre
+                          Formato: .xlsx con columnas: N° Documento, Primer Nombre, Segundo Nombre, Primer Apellido, Segundo Apellido, Razón Social
                         </p>
                       </>
                     )}
@@ -418,30 +443,60 @@ export default function ValidateClients() {
                 </div>
 
                 <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 mb-2">Formato esperado del archivo:</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Formato esperado del archivo:</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="text-xs h-7 px-3"
+                      onClick={() => {
+                        const link = document.createElement("a");
+                        link.href = "/api/laft/validate/bulk/template";
+                        link.download = "plantilla_validacion_listas.xlsx";
+                        link.click();
+                      }}
+                      data-testid="button-download-template"
+                    >
+                      <Download className="w-3 h-3 mr-1" />
+                      Descargar Plantilla
+                    </Button>
+                  </div>
                   <div className="overflow-x-auto">
                     <table className="text-xs w-full">
                       <thead>
                         <tr className="border-b border-gray-200 dark:border-gray-700">
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna A</th>
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna B</th>
-                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Columna C</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col A</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col B</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col C</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col D</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col E</th>
+                          <th className="text-left py-1 px-2 text-gray-500 font-medium">Col F</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr className="border-b border-gray-100 dark:border-gray-700/50 font-semibold text-gray-700 dark:text-gray-300">
-                          <td className="py-1 px-2">Tipo Documento</td>
-                          <td className="py-1 px-2">Número Documento</td>
-                          <td className="py-1 px-2">Nombre</td>
+                          <td className="py-1 px-2">N° Documento</td>
+                          <td className="py-1 px-2">Primer Nombre</td>
+                          <td className="py-1 px-2">Segundo Nombre</td>
+                          <td className="py-1 px-2">Primer Apellido</td>
+                          <td className="py-1 px-2">Segundo Apellido</td>
+                          <td className="py-1 px-2">Razón Social</td>
                         </tr>
                         <tr className="text-gray-500">
-                          <td className="py-1 px-2">CC</td>
                           <td className="py-1 px-2">1023456789</td>
-                          <td className="py-1 px-2">CARLOS MARTÍNEZ</td>
+                          <td className="py-1 px-2">CARLOS</td>
+                          <td className="py-1 px-2">ANDRÉS</td>
+                          <td className="py-1 px-2">MARTÍNEZ</td>
+                          <td className="py-1 px-2">LÓPEZ</td>
+                          <td className="py-1 px-2"></td>
                         </tr>
                         <tr className="text-gray-500">
-                          <td className="py-1 px-2">NIT</td>
                           <td className="py-1 px-2">900123456</td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
+                          <td className="py-1 px-2"></td>
                           <td className="py-1 px-2">INVERSIONES EL DORADO</td>
                         </tr>
                       </tbody>
@@ -500,11 +555,12 @@ export default function ValidateClients() {
             <div className="p-12 text-center" data-testid="status-no-results">
               <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sin reportes</h3>
-              <p className="text-gray-500 max-w-md mx-auto">
-                {searchContext?.type === "doc"
-                  ? <>El documento <span className="font-semibold">{searchContext.value}</span> no presenta coincidencias.</>
-                  : <>El nombre <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias.</>}
+              <p className="text-gray-500 max-w-md mx-auto mb-4">
+                El documento <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias en las listas restrictivas consultadas.
               </p>
+              <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border bg-green-100 text-green-800 border-green-200" data-testid="vinculacion-permitida">
+                Permite Vinculación: SÍ
+              </span>
             </div>
           ) : (
             renderResultsTable(results)
@@ -559,9 +615,7 @@ export default function ValidateClients() {
                   )}
                   <div>
                     <p className="text-sm font-semibold text-gray-900 dark:text-white">
-                      {result.queryDocumentType && result.queryDocumentNumber
-                        ? `${result.queryDocumentType} ${result.queryDocumentNumber}`
-                        : result.queryFullName || "—"}
+                      {result.queryDocumentNumber || result.queryFullName || "—"}
                       {result.queryFullName && result.queryDocumentNumber && (
                         <span className="text-gray-400 font-normal"> — {result.queryFullName}</span>
                       )}
