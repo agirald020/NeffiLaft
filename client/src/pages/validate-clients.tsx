@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, User, Hash, X } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, User, Hash, X, Building2, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,7 +47,12 @@ export default function ValidateClients() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [documentType, setDocumentType] = useState("CC");
   const [documentNumber, setDocumentNumber] = useState("");
-  const [searchName, setSearchName] = useState("");
+  const [personType, setPersonType] = useState<"natural" | "juridica">("natural");
+  const [firstName, setFirstName] = useState("");
+  const [secondName, setSecondName] = useState("");
+  const [firstLastName, setFirstLastName] = useState("");
+  const [secondLastName, setSecondLastName] = useState("");
+  const [companyName, setCompanyName] = useState("");
   const [results, setResults] = useState<RestrictiveListMatch[] | null>(null);
   const [bulkResults, setBulkResults] = useState<BulkResult[] | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -70,17 +75,25 @@ export default function ValidateClients() {
     onError: () => showErrorToast(),
   });
 
+  const buildFullName = () => {
+    if (personType === "juridica") return companyName.trim();
+    return [firstName, secondName, firstLastName, secondLastName]
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .join(" ");
+  };
+
   const validateByNameMutation = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/laft/validate", {
-        fullName: searchName.trim(),
-      });
+      const fullName = buildFullName();
+      const res = await apiRequest("POST", "/api/laft/validate", { fullName });
       return res.json() as Promise<RestrictiveListMatch[]>;
     },
     onSuccess: (data) => {
+      const fullName = buildFullName();
       setResults(data);
       setBulkResults(null);
-      setSearchContext({ type: "name", value: searchName });
+      setSearchContext({ type: "name", value: fullName });
       showResultToast(data.length);
     },
     onError: () => showErrorToast(),
@@ -146,8 +159,23 @@ export default function ValidateClients() {
 
   const handleNameSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!searchName.trim()) {
-      toast({ title: "Campo requerido", description: "Ingrese el nombre a consultar.", variant: "destructive" });
+    const fullName = buildFullName();
+    if (!fullName) {
+      toast({
+        title: "Campo requerido",
+        description: personType === "juridica"
+          ? "Ingrese la razón social."
+          : "Ingrese al menos el primer nombre y primer apellido.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (personType === "natural" && (!firstName.trim() || !firstLastName.trim())) {
+      toast({
+        title: "Campos requeridos",
+        description: "El primer nombre y primer apellido son obligatorios.",
+        variant: "destructive",
+      });
       return;
     }
     validateByNameMutation.mutate();
@@ -329,22 +357,132 @@ export default function ValidateClients() {
 
           <TabsContent value="name">
             <form onSubmit={handleNameSubmit} className="space-y-5" data-testid="form-validate-name">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-2">
-                  <Label htmlFor="searchName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Nombre del Tercero
-                  </Label>
-                  <Input
-                    id="searchName"
-                    type="text"
-                    placeholder="Ej: CARLOS MARTÍNEZ"
-                    value={searchName}
-                    onChange={(e) => setSearchName(e.target.value)}
-                    className="h-10"
-                    data-testid="input-search-name"
-                  />
+              <div className="space-y-2 mb-4">
+                <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">Tipo de Persona</Label>
+                <div className="flex space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setPersonType("natural")}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                      personType === "natural"
+                        ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
+                    }`}
+                    data-testid="button-person-natural"
+                  >
+                    <UserRound className="w-5 h-5" />
+                    <span className="text-sm font-medium">Persona Natural</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setPersonType("juridica")}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${
+                      personType === "juridica"
+                        ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
+                        : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
+                    }`}
+                    data-testid="button-person-juridica"
+                  >
+                    <Building2 className="w-5 h-5" />
+                    <span className="text-sm font-medium">Persona Jurídica</span>
+                  </button>
                 </div>
-                <div className="flex items-end">
+              </div>
+
+              {personType === "juridica" ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                    <Label htmlFor="companyName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Razón Social
+                    </Label>
+                    <Input
+                      id="companyName"
+                      type="text"
+                      placeholder="Ej: INVERSIONES EL DORADO S.A.S."
+                      value={companyName}
+                      onChange={(e) => setCompanyName(e.target.value)}
+                      className="h-10"
+                      data-testid="input-company-name"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      type="submit"
+                      disabled={validateByNameMutation.isPending}
+                      className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
+                      data-testid="button-validate-name"
+                    >
+                      {validateByNameMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Search className="w-4 h-4 mr-2" />
+                      )}
+                      Buscar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Primer Nombre <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstName"
+                        type="text"
+                        placeholder="Ej: CARLOS"
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        className="h-10"
+                        data-testid="input-first-name"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="secondName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Segundo Nombre
+                      </Label>
+                      <Input
+                        id="secondName"
+                        type="text"
+                        placeholder="Ej: ANDRÉS"
+                        value={secondName}
+                        onChange={(e) => setSecondName(e.target.value)}
+                        className="h-10"
+                        data-testid="input-second-name"
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Primer Apellido <span className="text-red-500">*</span>
+                      </Label>
+                      <Input
+                        id="firstLastName"
+                        type="text"
+                        placeholder="Ej: MARTÍNEZ"
+                        value={firstLastName}
+                        onChange={(e) => setFirstLastName(e.target.value)}
+                        className="h-10"
+                        data-testid="input-first-lastname"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="secondLastName" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                        Segundo Apellido
+                      </Label>
+                      <Input
+                        id="secondLastName"
+                        type="text"
+                        placeholder="Ej: LÓPEZ"
+                        value={secondLastName}
+                        onChange={(e) => setSecondLastName(e.target.value)}
+                        className="h-10"
+                        data-testid="input-second-lastname"
+                      />
+                    </div>
+                  </div>
                   <Button
                     type="submit"
                     disabled={validateByNameMutation.isPending}
@@ -359,7 +497,7 @@ export default function ValidateClients() {
                     Buscar por Nombre
                   </Button>
                 </div>
-              </div>
+              )}
             </form>
           </TabsContent>
 
