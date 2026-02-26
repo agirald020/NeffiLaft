@@ -3,7 +3,7 @@ package com.neffi.laft.service;
 import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.model.RestrictiveListEntry;
-import com.neffi.laft.repository.InMemoryRestrictiveListRepository;
+import com.neffi.laft.repository.oryRestrictiveListRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
