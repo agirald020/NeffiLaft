@@ -63,7 +63,10 @@ Full REST API in Java with multi-layer architecture:
 - `GET/POST /api/laft` — Trust management
 - `GET/POST /api/laft/{id}/events` — event management
 - `GET/POST /api/laft/{trustId}/contract` — contract management
-- `POST /api/laft/validate` — validate clients against restrictive lists (accepts documentType, documentNumber)
+- `POST /api/laft/validate` — validate clients against restrictive lists (accepts documentNumber, personType, name fields)
+- `POST /api/laft/validate/report` — generate PDF report for individual validation results
+- `GET /api/laft/validate/bulk/template` — download Excel template for bulk validation
+- `POST /api/laft/validate/bulk` — bulk validate via Excel upload
 
 ### Shared Types (`shared/`)
 - `shared/schema.ts`: TypeScript types used by both frontend and (previously) backend. Frontend imports types like `Trust`, `Event`, `Contract`, `EventWithUser` from here.

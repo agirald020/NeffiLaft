@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound, Download } from "lucide-react";
+import { ShieldCheck, Search, AlertTriangle, CheckCircle2, Loader2, FileText, Upload, X, Building2, UserRound, Download, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { getAuthHeader } from "@/lib/keycloak";
+import { useAuth } from "@/hooks/use-auth";
 
 interface RestrictiveListMatch {
   id: string;
@@ -29,7 +30,9 @@ interface BulkResult {
 
 export default function ValidateClients() {
   const { toast } = useToast();
+  const { user } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const [documentNumber, setDocumentNumber] = useState("");
   const [personType, setPersonType] = useState<"natural" | "juridica">("natural");
   const [firstName, setFirstName] = useState("");
@@ -145,6 +148,46 @@ export default function ValidateClients() {
         return;
       }
       setSelectedFile(file);
+    }
+  };
+
+  const handleDownloadPdf = async () => {
+    if (results === null) return;
+    setDownloadingPdf(true);
+    try {
+      const body: Record<string, string> = {
+        documentNumber: documentNumber.trim(),
+        personType,
+      };
+      if (personType === "natural") {
+        if (firstName.trim()) body.firstName = firstName.trim();
+        if (secondName.trim()) body.secondName = secondName.trim();
+        if (firstLastName.trim()) body.firstLastName = firstLastName.trim();
+        if (secondLastName.trim()) body.secondLastName = secondLastName.trim();
+      } else {
+        if (businessName.trim()) body.businessName = businessName.trim();
+      }
+      const res = await fetch("/api/laft/validate/report", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeader(),
+        },
+        body: JSON.stringify(body),
+        credentials: "include",
+      });
+      if (!res.ok) throw new Error("Error generando PDF");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `informe_validacion_${documentNumber.trim() || "listas"}.pdf`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      toast({ title: "Error", description: "No se pudo generar el informe PDF.", variant: "destructive" });
+    } finally {
+      setDownloadingPdf(false);
     }
   };
 
@@ -546,12 +589,29 @@ export default function ValidateClients() {
                 </p>
               </div>
             </div>
-            {results.length > 0 && (
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                ALERTA
-              </span>
-            )}
+            <div className="flex items-center space-x-3">
+              {results.length > 0 && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  ALERTA
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDownloadPdf}
+                disabled={downloadingPdf}
+                className="text-xs"
+                data-testid="button-download-pdf"
+              >
+                {downloadingPdf ? (
+                  <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                ) : (
+                  <FileDown className="w-3.5 h-3.5 mr-1.5" />
+                )}
+                Descargar Informe PDF
+              </Button>
+            </div>
           </div>
 
           {results.length === 0 ? (
