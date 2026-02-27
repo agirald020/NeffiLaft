@@ -9,12 +9,14 @@
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/controller/ContractController.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryTrustRepository.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/service/RestrictiveListService.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/ValidationReportRequestDto.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/model/Contract.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryEventRepository.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/BulkValidateResultDto.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/model/Event.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/repository/InMemoryRestrictiveListRepository.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/config/CorsConfig.java
+/home/runner/workspace/backend/src/main/java/com/neffi/laft/service/PdfReportService.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/ValidateClientDto.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/service/EventService.java
 /home/runner/workspace/backend/src/main/java/com/neffi/laft/dto/CreateEventDto.java
