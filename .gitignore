@@ -7,3 +7,7 @@ vite.config.ts.*
 # Environment variables (no subir a git)
 .env
 .env.local
+# Ignorar carpetas de salida de compilación
+target/
+*.class
+bin/
