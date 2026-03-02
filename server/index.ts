@@ -4,7 +4,7 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { setupVite, serveStatic, log } from "./vite";
 import { createServer } from "http";
 
-const SPRING_BOOT_URL = process.env.SPRING_BOOT_URL || "http://localhost:8080";
+const SPRING_BOOT_URL = process.env.SPRING_BOOT_URL || "http://localhost:8091";
 const IS_DEV = process.env.NODE_ENV === "development";
 const AUTH_BYPASS = process.env.AUTH_BYPASS === "true";
 
