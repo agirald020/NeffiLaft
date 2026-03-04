@@ -69,33 +69,14 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
   const mapToBackendDto = (): ValidateClientDTO => {
     const doc = documentNumber.trim();
 
-    // 🔹 Si viene identificación, SOLO enviamos identificación
-    if (doc) {
-      return {
-        P_IDENTIFICACION: doc,
-      };
-    }
+    return {
+      P_IDENTIFICACION: doc,
+      P_NOMBRE_1: personType === "juridica" ? companyName.trim() : firstName.trim(),
+      P_NOMBRE_2: personType === "juridica" ? undefined : secondName.trim(),
+      P_APELLIDO_1: personType === "juridica" ? undefined : firstLastName.trim(),
+      P_APELLIDO_2: personType === "juridica" ? undefined : secondLastName.trim(),
+    };
 
-    // 🔹 Si no viene identificación, enviamos nombres
-
-    if (personType === "juridica") {
-      const name = companyName.trim();
-      if (!name) return {};
-
-      return {
-        P_NOMBRE_1: name,
-      };
-    }
-
-    // Persona natural
-    const dto: ValidateClientDTO = {};
-
-    if (firstName.trim()) dto.P_NOMBRE_1 = firstName.trim();
-    if (secondName.trim()) dto.P_NOMBRE_2 = secondName.trim();
-    if (firstLastName.trim()) dto.P_APELLIDO_1 = firstLastName.trim();
-    if (secondLastName.trim()) dto.P_APELLIDO_2 = secondLastName.trim();
-
-    return dto;
   };
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
