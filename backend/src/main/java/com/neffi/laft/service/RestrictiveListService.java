@@ -13,15 +13,14 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.ButValidarListasParams;
-import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.dto.RestrictiveListEntry;
+import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.repository.RestrictiveListRepository;
 import com.neffi.laft.utils.JwtUtils;
 
@@ -104,7 +103,7 @@ public class RestrictiveListService {
 
                 if (docNumber.isBlank() && fullName.isBlank()) continue;
 
-                    ValidateClientDto dto = new ValidateClientDto(null, primerNombre, segundoNombre, primerApellido, segundoApellido);
+                    ValidateClientDto dto = ValidateClientDto.builder().p_IDENTIFICACION(null).build();
                 List<RestrictiveListEntry> matches = validateClient(dto, "");
 
                 results.add(BulkValidateResultDto.builder()

@@ -80,7 +80,13 @@ public class RestrictiveListController {
             }
 
             String fullName = buildFullName(request);
-            ValidateClientDto validateDto = new ValidateClientDto();
+            ValidateClientDto validateDto = ValidateClientDto.builder()
+                .p_IDENTIFICACION(request.getDocumentNumber())
+                .p_NOMBRE_1(request.getFirstName())
+                .p_NOMBRE_2(request.getSecondName())
+                .p_APELLIDO_1(request.getFirstLastName())
+                .p_APELLIDO_2(request.getSecondLastName())
+                .build();
             // validateDto.setDocumentNumber(request.getDocumentNumber());
             // validateDto.setFullName(fullName);
             // List<RestrictiveListEntry> matches = restrictiveListService.validateClient(validateDto);

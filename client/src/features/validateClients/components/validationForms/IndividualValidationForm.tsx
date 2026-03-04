@@ -70,11 +70,11 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
     const doc = documentNumber.trim();
 
     return {
-      P_IDENTIFICACION: doc,
-      P_NOMBRE_1: personType === "juridica" ? companyName.trim() : firstName.trim(),
-      P_NOMBRE_2: personType === "juridica" ? undefined : secondName.trim(),
-      P_APELLIDO_1: personType === "juridica" ? undefined : firstLastName.trim(),
-      P_APELLIDO_2: personType === "juridica" ? undefined : secondLastName.trim(),
+      p_IDENTIFICACION: doc,
+      p_NOMBRE_1: personType === "juridica" ? companyName.trim() : firstName.trim(),
+      p_NOMBRE_2: personType === "juridica" ? undefined : secondName.trim(),
+      p_APELLIDO_1: personType === "juridica" ? undefined : firstLastName.trim(),
+      p_APELLIDO_2: personType === "juridica" ? undefined : secondLastName.trim(),
     };
 
   };
