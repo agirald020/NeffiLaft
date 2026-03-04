@@ -18,6 +18,7 @@ public class ContractService {
 
     private final InMemoryContractRepository contractRepository;
 
+    @Deprecated
     public Optional<Contract> getContractByTrustId(String trustId) {
         log.debug("Buscando contrato del fideicomiso: {}", trustId);
         return contractRepository.findByTrustId(trustId);

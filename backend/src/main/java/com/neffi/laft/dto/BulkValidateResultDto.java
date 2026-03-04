@@ -1,6 +1,6 @@
 package com.neffi.laft.dto;
 
-import com.neffi.laft.model.RestrictiveListEntry;
+import com.neffi.laft.dto.RestrictiveListEntry;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

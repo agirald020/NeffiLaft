@@ -1,48 +1,71 @@
 package com.neffi.laft.service;
 
-import com.neffi.laft.dto.BulkValidateResultDto;
-import com.neffi.laft.dto.ValidateClientDto;
-import com.neffi.laft.model.RestrictiveListEntry;
-import com.neffi.laft.repository.InMemoryRestrictiveListRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.ss.usermodel.Font;
+import org.apache.poi.ss.usermodel.IndexedColors;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.neffi.laft.dto.BulkValidateResultDto;
+import com.neffi.laft.dto.ButValidarListasParams;
+import com.neffi.laft.dto.ValidateClientDto;
+import com.neffi.laft.dto.RestrictiveListEntry;
+import com.neffi.laft.repository.RestrictiveListRepository;
+import com.neffi.laft.utils.JwtUtils;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class RestrictiveListService {
 
-    private final InMemoryRestrictiveListRepository repository;
+    @Value("${app.restrictiveList.validationProcessName}")
+    private String proceso;
 
-    public List<RestrictiveListEntry> validateClient(ValidateClientDto dto) {
+    @Value("${app.restrictiveList.validationEventDescription}")
+    private String descripcionEvento;
+
+    private final RestrictiveListRepository restrictiveListRepository;
+    private final JwtUtils jwtUtils;
+
+    /**
+     * Valida un cliente contra las listas restrictivas ejecutando la función BUT_VALIDAR_LISTAS con los parámetros proporcionados.
+     * @param dto
+     * @param requestUrl
+     * @return
+     */
+    public List<RestrictiveListEntry> validateClient(ValidateClientDto dto, String requestUrl) {
         log.info("Validando cliente - Documento: {}, Nombre: {}",
-            dto.getDocumentNumber(), dto.getFullName());
+            dto.getP_IDENTIFICACION(), dto.getP_NOMBRE_1());
 
-        List<RestrictiveListEntry> results = new ArrayList<>();
+        ButValidarListasParams params = new ButValidarListasParams(
+            dto.getP_IDENTIFICACION(),
+            dto.getP_NOMBRE_1(),
+            dto.getP_NOMBRE_2(),
+            dto.getP_APELLIDO_1(),
+            dto.getP_APELLIDO_2(),
+            proceso,
+            null,
+            jwtUtils.getCurrentUsername(),
+            requestUrl,
+            descripcionEvento
+        );
 
-        boolean hasDocument = dto.getDocumentNumber() != null && !dto.getDocumentNumber().isBlank();
-        boolean hasName = dto.getFullName() != null && !dto.getFullName().isBlank();
-
-        if (hasDocument) {
-            results = repository.findByDocumentNumber(dto.getDocumentNumber());
-        }
-
-        if (hasName) {
-            List<RestrictiveListEntry> nameResults = repository.findByName(dto.getFullName());
-            for (RestrictiveListEntry entry : nameResults) {
-                if (results.stream().noneMatch(r -> r.getId().equals(entry.getId()))) {
-                    results.add(entry);
-                }
-            }
-        }
+        List<RestrictiveListEntry> results = restrictiveListRepository.butValidarListas(params);
 
         log.info("Encontradas {} coincidencias", results.size());
         return results;
@@ -81,8 +104,8 @@ public class RestrictiveListService {
 
                 if (docNumber.isBlank() && fullName.isBlank()) continue;
 
-                ValidateClientDto dto = new ValidateClientDto(docNumber, fullName);
-                List<RestrictiveListEntry> matches = validateClient(dto);
+                    ValidateClientDto dto = new ValidateClientDto(null, primerNombre, segundoNombre, primerApellido, segundoApellido);
+                List<RestrictiveListEntry> matches = validateClient(dto, "");
 
                 results.add(BulkValidateResultDto.builder()
                     .queryDocumentNumber(docNumber)

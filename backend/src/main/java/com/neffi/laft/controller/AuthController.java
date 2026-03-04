@@ -22,6 +22,7 @@ public class AuthController {
     @Value("${app.bypass-auth:false}")
     private boolean bypassAuth;
 
+    //Se usa
     @GetMapping("/user")
     public ResponseEntity<Map<String, Object>> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
         if (bypassAuth || jwt == null) {

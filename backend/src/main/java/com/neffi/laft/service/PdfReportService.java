@@ -1,6 +1,6 @@
 package com.neffi.laft.service;
 
-import com.neffi.laft.model.RestrictiveListEntry;
+import com.neffi.laft.dto.RestrictiveListEntry;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
@@ -212,11 +212,11 @@ public class PdfReportService {
 
             float x = MARGIN;
             String[] values = {
-                truncate(sanitize(match.getDocumentNumber()), 14),
-                truncate(sanitize(match.getFullName()), 22),
-                truncate(sanitize(match.getListName()), 16),
-                truncate(sanitize(match.getListSource()), 12),
-                truncate(sanitize(match.getMatchType()), 12)
+                // truncate(sanitize(match.getDocumentNumber()), 14),
+                // truncate(sanitize(match.getFullName()), 22),
+                // truncate(sanitize(match.getListName()), 16),
+                // truncate(sanitize(match.getListSource()), 12),
+                // truncate(sanitize(match.getMatchType()), 12)
             };
 
             for (int i = 0; i < values.length; i++) {

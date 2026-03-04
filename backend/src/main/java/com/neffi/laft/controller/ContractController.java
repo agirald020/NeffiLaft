@@ -18,12 +18,14 @@ public class ContractController {
     private final ContractService contractService;
 
     @GetMapping("/{trustId}/contract")
+    @Deprecated
     public ResponseEntity<Contract> getContract(@PathVariable String trustId) {
         return contractService.getContractByTrustId(trustId)
             .map(ResponseEntity::ok)
             .orElse(ResponseEntity.noContent().build());
     }
 
+    //Se usa
     @PostMapping("/{trustId}/contract")
     public ResponseEntity<Contract> saveContract(
             @PathVariable String trustId,

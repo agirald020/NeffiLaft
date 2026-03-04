@@ -22,11 +22,13 @@ public class EventController {
 
     private final EventService eventService;
 
+    @Deprecated
     @GetMapping("/laft/{trustId}/events")
     public ResponseEntity<List<Event>> getEvents(@PathVariable String trustId) {
         return ResponseEntity.ok(eventService.getEventsByTrustId(trustId));
     }
 
+    //Se Usa
     @PostMapping("/laft/{trustId}/events")
     public ResponseEntity<Event> createEvent(
             @PathVariable String trustId,
@@ -40,6 +42,7 @@ public class EventController {
         return ResponseEntity.ok(event);
     }
 
+    //Se usa
     @PutMapping("/events/{id}")
     public ResponseEntity<Event> updateEvent(
             @PathVariable String id,
@@ -49,6 +52,7 @@ public class EventController {
             .orElse(ResponseEntity.notFound().build());
     }
 
+    //SE USA
     @DeleteMapping("/events/{id}")
     public ResponseEntity<Map<String, Boolean>> deleteEvent(@PathVariable String id) {
         boolean deleted = eventService.deleteEvent(id);

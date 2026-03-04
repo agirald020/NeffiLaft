@@ -12,6 +12,7 @@ public class InMemoryContractRepository {
 
     private final Map<String, Contract> store = new ConcurrentHashMap<>();
 
+    @Deprecated
     public Optional<Contract> findByTrustId(String trustId) {
         return store.values().stream()
             .filter(c -> c.getTrustId().equals(trustId))

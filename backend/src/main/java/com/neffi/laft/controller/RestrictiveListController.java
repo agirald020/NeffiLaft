@@ -1,26 +1,36 @@
 package com.neffi.laft.controller;
 
-import com.neffi.laft.dto.BulkValidateResultDto;
-import com.neffi.laft.dto.ValidateClientDto;
-import com.neffi.laft.dto.ValidationReportRequestDto;
-import com.neffi.laft.model.RestrictiveListEntry;
-import com.neffi.laft.service.PdfReportService;
-import com.neffi.laft.service.RestrictiveListService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayOutputStream;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
-import java.util.List;
-import java.util.Map;
+import com.neffi.laft.dto.BulkValidateResultDto;
+import com.neffi.laft.dto.RestrictiveListEntry;
+import com.neffi.laft.dto.ValidateClientDto;
+import com.neffi.laft.dto.ValidationReportRequestDto;
+import com.neffi.laft.service.PdfReportService;
+import com.neffi.laft.service.RestrictiveListService;
+import com.neffi.laft.utils.JwtUtils;
+
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RestController
@@ -31,16 +41,30 @@ public class RestrictiveListController {
     private final RestrictiveListService restrictiveListService;
     private final PdfReportService pdfReportService;
 
+    @Autowired
+    private JwtUtils jwtUtils;
+
     @Value("${app.bypass-auth:false}")
     private boolean bypassAuth;
 
+    /**
+     * Valida un cliente contra las listas restrictivas ejecutando la función BUT_VALIDAR_LISTAS con los parámetros proporcionados.
+     * @param dto
+     * @param request
+     * @return
+     */
     @PostMapping
     public ResponseEntity<List<RestrictiveListEntry>> validateClient(
-            @RequestBody ValidateClientDto dto) {
-        List<RestrictiveListEntry> results = restrictiveListService.validateClient(dto);
+            @RequestBody ValidateClientDto dto, HttpServletRequest request) {
+        String clientIp = jwtUtils.getClientIp(request);
+        log.info("Peticion recibida desde IP: {} - Documento: {}, Nombre: {}", 
+            clientIp, dto.getP_IDENTIFICACION(), dto.getP_NOMBRE_1());
+        
+        List<RestrictiveListEntry> results = restrictiveListService.validateClient(dto, request.getRequestURL().toString());
         return ResponseEntity.ok(results);
     }
 
+    //Se usa
     @PostMapping("/report")
     public ResponseEntity<byte[]> generateReport(
             @RequestBody ValidationReportRequestDto request,
@@ -57,16 +81,16 @@ public class RestrictiveListController {
 
             String fullName = buildFullName(request);
             ValidateClientDto validateDto = new ValidateClientDto();
-            validateDto.setDocumentNumber(request.getDocumentNumber());
-            validateDto.setFullName(fullName);
-            List<RestrictiveListEntry> matches = restrictiveListService.validateClient(validateDto);
+            // validateDto.setDocumentNumber(request.getDocumentNumber());
+            // validateDto.setFullName(fullName);
+            // List<RestrictiveListEntry> matches = restrictiveListService.validateClient(validateDto);
 
             byte[] pdf = pdfReportService.generateValidationReport(
                 request.getDocumentNumber(),
                 request.getPersonType(),
                 fullName,
                 userName,
-                matches
+                null
             );
             return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=informe_validacion_listas.pdf")
