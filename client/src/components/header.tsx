@@ -1,6 +1,6 @@
 import { Bell, User, LogOut, Shield, Landmark, Grid3X3 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useAuth } from "@/hooks/use-auth";
+import { Button } from "@/shared/ui/button";
+import { useAuth } from "@/shared/hooks/use-auth";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -8,7 +8,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+} from "@/shared/ui/dropdown-menu";
 
 const modules = [
   {

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { X, Download, Maximize2, FileText, Image } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/shared/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/shared/ui/dialog";
+import { Badge } from "@/shared/ui/badge";
 
 interface EvidenceItem {
   name: string;

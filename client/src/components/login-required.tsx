@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/shared/hooks/use-auth";
+import { Button } from "@/shared/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { LogIn, Shield } from "lucide-react";
 
 interface LoginRequiredProps {

@@ -1,14 +1,9 @@
 import { useLocation, Link } from "wouter";
 import { ShieldCheck, Home, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { cn } from "@/shared/lib/utils";
 
 const menuItems = [
-  {
-    label: "Inicio",
-    href: "/",
-    icon: Home,
-  },
   {
     label: "Validar en Listas",
     href: "/validar",

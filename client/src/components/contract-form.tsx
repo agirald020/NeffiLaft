@@ -1,13 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/shared/ui/button";
+import { Textarea } from "@/shared/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/shared/ui/form";
+import { useToast } from "@/shared/hooks/use-toast";
+import { apiRequest } from "@/shared/lib/queryClient";
 import { ClipboardList, FileText, DollarSign, X, Save, Loader2 } from "lucide-react";
 import type { Contract } from "@shared/schema";
 

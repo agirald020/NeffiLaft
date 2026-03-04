@@ -1,6 +1,6 @@
 import { Link } from "wouter";
 import { ChevronRight } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { Badge } from "@/shared/ui/badge";
 import type { Trust } from "@shared/schema";
 
 interface TrustListProps {

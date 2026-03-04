@@ -53,7 +53,7 @@ public class RestrictiveListService {
         List<BulkValidateResultDto> results = new ArrayList<>();
 
         try (InputStream is = file.getInputStream();
-             Workbook workbook = new XSSFWorkbook(is)) {
+            Workbook workbook = new XSSFWorkbook(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
             int firstDataRow = 1;

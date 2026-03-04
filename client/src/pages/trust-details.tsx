@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { ArrowLeft, CheckCircle, XCircle, Search, Users, FileText, Building2, Briefcase, ClipboardList, Info, Calendar, Users2 } from "lucide-react";
 import ContractForm from "@/components/contract-form";
 import EventList from "@/components/event-list";

@@ -9,13 +9,13 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}
-          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}/protocol/openid-connect/certs
+          issuer-uri: ${KEYCLOAK_URL:http://192.168.2.10:8080}/realms/${KEYCLOAK_REALM:neffiLaft}
+          jwk-set-uri: ${KEYCLOAK_URL:http://192.168.2.10:8080}/realms/${KEYCLOAK_REALM:neffiLaft}/protocol/openid-connect/certs
 
 keycloak:
-  realm: ${KEYCLOAK_REALM:Ideea}
-  auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
-  client-id: ${KEYCLOAK_CLIENT_ID:neffi-trust-dev}
+  realm: ${KEYCLOAK_REALM:neffiLaft}
+  auth-server-url: ${KEYCLOAK_URL:http://192.168.2.10:8080}
+  client-id: ${KEYCLOAK_CLIENT_ID:neffiLaft-app}
 
 app:
   bypass-auth: ${AUTH_BYPASS:false}

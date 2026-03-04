@@ -6,12 +6,12 @@ import {
   Building2, ClipboardList, MessageSquare, UserCheck, Scale,
   AlertCircle, PenTool, CalendarDays, MessageCircle, Headphones, FileBarChart, User
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { Button } from "@/shared/ui/button";
+import { Badge } from "@/shared/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/shared/ui/select";
+import { Input } from "@/shared/ui/input";
+import { useToast } from "@/shared/hooks/use-toast";
+import { apiRequest } from "@/shared/lib/queryClient";
 import EventForm from "./event-form";
 import EvidenceGallery from "./evidence-gallery";
 import type { EventWithUser } from "@shared/schema";

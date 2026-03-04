@@ -28,9 +28,9 @@ app.use((req, _res, next) => {
 // Expose Keycloak config to the frontend (no secrets here, only public info)
 app.get("/api/auth/keycloak-config", (_req: Request, res: Response) => {
   res.json({
-    url: process.env.KEYCLOAK_URL || "http://localhost:8080",
-    realm: process.env.KEYCLOAK_REALM || "Ideea",
-    clientId: process.env.KEYCLOAK_CLIENT_ID || "neffi-trust-dev",
+    url: process.env.KEYCLOAK_URL || "http://192.168.2.10:8080",
+    realm: process.env.KEYCLOAK_REALM || "neffiLaft",
+    clientId: process.env.KEYCLOAK_CLIENT_ID || "neffiLaft-app",
     bypassActive: AUTH_BYPASS,
   });
 });
