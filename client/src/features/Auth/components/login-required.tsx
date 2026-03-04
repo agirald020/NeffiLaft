@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useAuth } from "@/shared/hooks/use-auth";
+import { useAuth } from "@/features/Auth/hooks/use-auth";
 import { Button } from "@/shared/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/shared/ui/card";
 import { LogIn, Shield } from "lucide-react";

@@ -1,6 +1,6 @@
 import { Bell, User, LogOut, Shield, Landmark, Grid3X3 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
-import { useAuth } from "@/shared/hooks/use-auth";
+import { useAuth } from "@/features/Auth/hooks/use-auth";
 import { 
   DropdownMenu, 
   DropdownMenuContent, 

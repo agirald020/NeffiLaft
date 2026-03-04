@@ -30,7 +30,6 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
   const { bulkMutation } = useValidateClient();
 
   //! ---- Handlers ----
-
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
 

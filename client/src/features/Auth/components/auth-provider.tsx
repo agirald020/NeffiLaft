@@ -1,12 +1,13 @@
 import { ReactNode, useEffect, useState } from "react";
-import { AuthContext } from "@/shared/hooks/use-auth";
-import type { AuthContextType, User } from "@/shared/hooks/use-auth";
+import { AuthContext } from "@/features/Auth/hooks/use-auth";
+import type { AuthContextType } from "@/features/Auth/hooks/use-auth";
 import {
   fetchKeycloakConfig,
   initKeycloakInstance,
   getAuthHeader,
 } from "@/shared/lib/keycloak";
 import type Keycloak from "keycloak-js";
+import { User } from "../types/User";
 
 interface AuthProviderProps {
   children: ReactNode;
