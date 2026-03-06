@@ -10,6 +10,7 @@ import { useValidationStore } from "../../stores/validateClients.store";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import type { BulkResult } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
+import { apiRequest } from "@/shared/lib/queryClient";
 
 interface BulkValidationFormProps { }
 
@@ -86,6 +87,32 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
     });
   };
 
+  const downloadTemplate = async () => {
+    try {
+      const res = await apiRequest(
+        "GET",
+        "/api/laft/validate/bulk/template"
+      );
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "plantilla_validacion_listas.xlsx";
+
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (err: any) {
+      toast({
+        title: "Error descargando plantilla",
+        description: err?.message || "No se pudo descargar la plantilla",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <form
       onSubmit={handleBulkSubmit}
@@ -157,24 +184,38 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
               </>
             )}
           </div>
+          <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4">
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs font-semibold text-gray-600 dark:text-gray-400">Formato esperado del archivo:</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="text-xs h-7 px-3"
+                onClick={downloadTemplate}
+              >
+                Descargar Plantilla
+              </Button>
+          </div>
         </div>
-
-        {/* BOTÓN VALIDAR */}
-        <Button
-          type="submit"
-          disabled={bulkMutation.isPending || !selectedFile || !hasPermission("validacion-masiva-R")}
-          className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-          data-testid="button-validate-bulk"
-        >
-          {bulkMutation.isPending ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Upload className="w-4 h-4 mr-2" />
-          )}
-          Validar Archivo
-        </Button>
       </div>
-    </form>
+
+      {/* BOTÓN VALIDAR */}
+      <Button
+        type="submit"
+        disabled={bulkMutation.isPending || !selectedFile || !hasPermission("validacion-masiva-R")}
+        className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
+        data-testid="button-validate-bulk"
+      >
+        {bulkMutation.isPending ? (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : (
+          <Upload className="w-4 h-4 mr-2" />
+        )}
+        Validar Archivo
+      </Button>
+    </div>
+    </form >
   );
 };
 
