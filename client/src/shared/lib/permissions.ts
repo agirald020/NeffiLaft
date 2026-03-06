@@ -11,3 +11,16 @@ export function hasPermission(permission: string): boolean {
 
   return roles.includes(permission);
 }
+
+export function getUserPermissions(): string[] {
+  const token = getKeycloak().tokenParsed as any;
+
+  if (!token) return [];
+
+  const client = token?.azp || "neffiLaft-app";
+
+  const roles =
+    token?.resource_access?.[client]?.roles || [];
+
+  return roles;
+}

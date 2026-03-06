@@ -45,4 +45,13 @@ public class AuthController {
 
         return ResponseEntity.ok(user);
     }
+
+    @GetMapping("/keycloak-config")
+    public Map<String, Object> getKeycloakConfig() {
+        return Map.of(
+                "url", "http://192.168.2.10:8080",
+                "realm", "neffiLaft",
+                "clientId", "neffiLaft-app",
+                "bypassActive", false);
+    }
 }
