@@ -3,7 +3,10 @@ import { getAuthHeader } from "@/shared/lib/keycloak";
 
 function buildHeaders(data?: unknown): Record<string, string> {
   const headers: Record<string, string> = {};
-  if (data) headers["Content-Type"] = "application/json";
+  // Don't set Content-Type for FormData - browser will set it with boundary
+  if (data && !(data instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   // Always include Bearer token if Keycloak has one (no-op in bypass mode)
   Object.assign(headers, getAuthHeader());
   return headers;
@@ -21,10 +24,11 @@ export async function apiRequest(
   url: string,
   data?: unknown,
 ): Promise<Response> {
+  const isFormData = data instanceof FormData;
   const res = await fetch(url, {
     method,
     headers: buildHeaders(data),
-    body: data ? JSON.stringify(data) : undefined,
+    body: isFormData ? data : (data ? JSON.stringify(data) : undefined),
     credentials: "include",
   });
   await throwIfResNotOk(res);

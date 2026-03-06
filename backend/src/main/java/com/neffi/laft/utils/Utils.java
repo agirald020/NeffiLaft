@@ -6,10 +6,12 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import com.neffi.laft.dto.ValidationReportRequestDto;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @Component
-public class JwtUtils {
+public class Utils {
     public String getCurrentUsername() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth instanceof JwtAuthenticationToken) {
@@ -35,5 +37,17 @@ public class JwtUtils {
         
         // Obtiene la IP remota directa del socket
         return request.getRemoteAddr();
+    }
+
+    public String buildFullName(ValidationReportRequestDto request) {
+        if ("juridica".equalsIgnoreCase(request.getPersonType())) {
+            return request.getBusinessName() != null ? request.getBusinessName().trim() : "";
+        }
+        StringBuilder sb = new StringBuilder();
+        if (request.getFirstName() != null && !request.getFirstName().isBlank()) sb.append(request.getFirstName().trim());
+        if (request.getSecondName() != null && !request.getSecondName().isBlank()) sb.append(" ").append(request.getSecondName().trim());
+        if (request.getFirstLastName() != null && !request.getFirstLastName().isBlank()) sb.append(" ").append(request.getFirstLastName().trim());
+        if (request.getSecondLastName() != null && !request.getSecondLastName().isBlank()) sb.append(" ").append(request.getSecondLastName().trim());
+        return sb.toString().trim();
     }
 }

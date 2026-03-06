@@ -26,7 +26,7 @@ import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.dto.ValidationReportRequestDto;
 import com.neffi.laft.service.PdfReportService;
 import com.neffi.laft.service.RestrictiveListService;
-import com.neffi.laft.utils.JwtUtils;
+import com.neffi.laft.utils.Utils;
 
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -42,7 +42,7 @@ public class RestrictiveListController {
     private final PdfReportService pdfReportService;
 
     @Autowired
-    private JwtUtils jwtUtils;
+    private Utils utils;
 
     @Value("${app.bypass-auth:false}")
     private boolean bypassAuth;
@@ -56,7 +56,7 @@ public class RestrictiveListController {
     @PostMapping
     public ResponseEntity<List<RestrictiveListEntry>> validateClient(
             @RequestBody ValidateClientDto dto, HttpServletRequest request) {
-        String clientIp = jwtUtils.getClientIp(request);
+        String clientIp = utils.getClientIp(request);
         log.info("Peticion recibida desde IP: {} - Documento: {}, Nombre: {}", 
             clientIp, dto.getP_IDENTIFICACION(), dto.getP_NOMBRE_1());
         
@@ -79,7 +79,7 @@ public class RestrictiveListController {
                 userName = jwt.getClaimAsString("preferred_username");
             }
 
-            String fullName = buildFullName(request);
+            String fullName = utils.buildFullName(request);
             ValidateClientDto validateDto = ValidateClientDto.builder()
                 .p_IDENTIFICACION(request.getDocumentNumber())
                 .p_NOMBRE_1(request.getFirstName())
@@ -108,18 +108,6 @@ public class RestrictiveListController {
         }
     }
 
-    private String buildFullName(ValidationReportRequestDto request) {
-        if ("juridica".equalsIgnoreCase(request.getPersonType())) {
-            return request.getBusinessName() != null ? request.getBusinessName().trim() : "";
-        }
-        StringBuilder sb = new StringBuilder();
-        if (request.getFirstName() != null && !request.getFirstName().isBlank()) sb.append(request.getFirstName().trim());
-        if (request.getSecondName() != null && !request.getSecondName().isBlank()) sb.append(" ").append(request.getSecondName().trim());
-        if (request.getFirstLastName() != null && !request.getFirstLastName().isBlank()) sb.append(" ").append(request.getFirstLastName().trim());
-        if (request.getSecondLastName() != null && !request.getSecondLastName().isBlank()) sb.append(" ").append(request.getSecondLastName().trim());
-        return sb.toString().trim();
-    }
-
     @GetMapping("/bulk/template")
     public ResponseEntity<byte[]> downloadTemplate() {
         try (Workbook workbook = restrictiveListService.generateBulkTemplate();
@@ -136,9 +124,10 @@ public class RestrictiveListController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         try {
-            List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file);
+            String clientIp = utils.getClientIp(request);
+            List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             log.error("Error procesando archivo Excel", e);

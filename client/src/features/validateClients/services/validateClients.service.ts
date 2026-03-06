@@ -11,10 +11,7 @@ export const validateBulk = async (file: File) => {
 	const formData = new FormData();
 	formData.append("file", file);
 
-	const res = await apiRequest("POST", "/api/laft/bulk", {
-		body: formData,
-		credentials: "include",
-	});
+	const res = await apiRequest("POST", "/api/laft/validate/bulk", formData);
   
 	return res.json();
 };
