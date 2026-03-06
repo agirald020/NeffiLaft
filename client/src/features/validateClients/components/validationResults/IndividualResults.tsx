@@ -1,4 +1,5 @@
-// client\src\features\validateClients\components\validationResults\IndividualResults.tsx
+// client/src/features/validateClients/components/validationResults/IndividualResults.tsx
+
 import React, { FunctionComponent, useState, useCallback } from "react";
 import {
   AlertTriangle,
@@ -12,6 +13,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { getAuthHeader } from "@/shared/lib/keycloak";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { RestrictiveListMatch } from "../../types/validateClients.types";
+import { hasPermission } from "@/shared/lib/permissions";
 
 interface IndividualResultsProps { }
 
@@ -21,22 +23,29 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
   // select only the needed bits from the store (avoids full-store re-renders)
   const results = useValidationStore(s => s.results);
-const searchContext = useValidationStore(s => s.searchContext);
-const documentNumber = useValidationStore(s => s.documentNumber);
-const personType = useValidationStore(s => s.personType);
-const firstName = useValidationStore(s => s.firstName);
-const secondName = useValidationStore(s => s.secondName);
-const firstLastName = useValidationStore(s => s.firstLastName);
-const secondLastName = useValidationStore(s => s.secondLastName);
-const companyName = useValidationStore(s => s.companyName);
-const businessName = useValidationStore(s => s.businessName);
+  const searchContext = useValidationStore(s => s.searchContext);
+  const documentNumber = useValidationStore(s => s.documentNumber);
+  const personType = useValidationStore(s => s.personType);
+  const firstName = useValidationStore(s => s.firstName);
+  const secondName = useValidationStore(s => s.secondName);
+  const firstLastName = useValidationStore(s => s.firstLastName);
+  const secondLastName = useValidationStore(s => s.secondLastName);
+  const companyName = useValidationStore(s => s.companyName);
+  const businessName = useValidationStore(s => s.businessName);
 
   // early return if nothing to show
   if (!results) return null;
 
-  const getMatchLabel = (type: string) => {
-    if (type === "Exacto") return "bg-red-600 text-white";
+  const getMatchLabel = (prioridad: number | undefined) => {
+    // convención simple: prioridad === 1 -> Exacto; else Parcial
+    if (prioridad === 1) return "bg-red-600 text-white";
     return "bg-orange-500 text-white";
+  };
+
+  const permiteVincular = (flag?: string | null) => {
+    if (!flag) return false;
+    const s = String(flag).toUpperCase().trim();
+    return s === "S" || s === "Y" || s === "1" || s === "T" || s === "TRUE";
   };
 
   // same table you had originally, adapted to the RestrictiveListMatch type
@@ -66,62 +75,70 @@ const businessName = useValidationStore(s => s.businessName);
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-          {matches.map((match) => (
-            <tr
-              key={match.id}
-              className="hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
-              data-testid={`row-result-${match.id}`}
-            >
-              <td className="px-6 py-4">
-                <div className="flex items-center space-x-2">
-                  <FileText className="w-4 h-4 text-gray-400" />
-                  <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">
-                      {match.documentType}
-                    </p>
-                    <p className="text-xs text-gray-500">{match.documentNumber}</p>
+          {matches.map((match) => {
+            // fallback logic para mostrar nombre/documento
+            const displayName = match.sdnName?.trim() || match.nombre || "—";
+            const documentId = match.identificacion || String(match.entNum) || "—";
+            const listName = match.descriTipoLista || match.nombre || `Lista ${match.codigoLista}`;
+            const listSource = match.tipo || match.tipoLista || "—";
+            const matchLabel = match.prioridadValidacion;
+            const permite = permiteVincular(match.permiteIdentificacion);
+
+            return (
+              <tr
+                key={match.entNum ?? `${match.codigoLista}-${match.identificacion ?? "no-id"}`}
+                className="hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
+                data-testid={`row-result-${match.entNum ?? match.codigoLista}`}
+              >
+                <td className="px-6 py-4">
+                  <div className="flex items-center space-x-2">
+                    <FileText className="w-4 h-4 text-gray-400" />
+                    <div>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {match.tipoDocumento ?? "—"}
+                      </p>
+                      <p className="text-xs text-gray-500">{documentId}</p>
+                    </div>
                   </div>
-                </div>
-              </td>
+                </td>
 
-              <td className="px-6 py-4">
-                <p className="text-sm font-medium text-gray-900 dark:text-white">
-                  {match.fullName}
-                </p>
-              </td>
+                <td className="px-6 py-4">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    {displayName}
+                  </p>
+                </td>
 
-              <td className="px-6 py-4">
-                <p className="text-sm text-gray-700 dark:text-gray-300">
-                  {match.listName}
-                </p>
-              </td>
+                <td className="px-6 py-4">
+                  <p className="text-sm text-gray-700 dark:text-gray-300">
+                    {listName}
+                  </p>
+                </td>
 
-              <td className="px-6 py-4">
-                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                  {match.listSource}
-                </span>
-              </td>
+                <td className="px-6 py-4">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                    {listSource}
+                  </span>
+                </td>
 
-              <td className="px-6 py-4">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getMatchLabel(
-                    match.matchType
-                  )}`}
-                >
-                  {match.matchType}
-                </span>
-              </td>
+                <td className="px-6 py-4">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getMatchLabel(matchLabel)}`}
+                  >
+                    {matchLabel === 1 ? "Exacto" : `Prioridad ${matchLabel ?? "—"}`}
+                  </span>
+                </td>
 
-              <td className="px-6 py-4">
-                <span
-                  className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border bg-red-100 text-red-800 border-red-200"
-                  data-testid={`vinculacion-${match.id}`}
-                >
-                  NO
-                </span>
-              </td>
-            </tr>
-          ))}
+                <td className="px-6 py-4">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}`}
+                    data-testid={`vinculacion-${match.entNum ?? match.codigoLista}`}
+                  >
+                    {permite ? "SÍ" : "NO"}
+                  </span>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
@@ -224,7 +241,7 @@ const businessName = useValidationStore(s => s.businessName);
             variant="outline"
             size="sm"
             onClick={handleDownloadPdf}
-            disabled={downloadingPdf}
+            disabled={downloadingPdf || !hasPermission("validar-en-listas-reportes")}
             className="text-xs"
             data-testid="button-download-pdf"
           >

@@ -9,6 +9,7 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { useValidationStore } from "../../stores/validateClients.store";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import type { BulkResult } from "../../types/validateClients.types";
+import { hasPermission } from "@/shared/lib/permissions";
 
 interface BulkValidationFormProps { }
 
@@ -161,7 +162,7 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
         {/* BOTÓN VALIDAR */}
         <Button
           type="submit"
-          disabled={bulkMutation.isPending || !selectedFile}
+          disabled={bulkMutation.isPending || !selectedFile || !hasPermission("validacion-masiva-R")}
           className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
           data-testid="button-validate-bulk"
         >

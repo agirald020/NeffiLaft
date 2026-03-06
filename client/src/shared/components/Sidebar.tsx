@@ -1,15 +1,9 @@
 import { useLocation, Link } from "wouter";
-import { ShieldCheck, Home, ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/shared/lib/utils";
-
-const menuItems = [
-  {
-    label: "Validar en Listas",
-    href: "/validar",
-    icon: ShieldCheck,
-  },
-];
+import { menuItems } from "./menuItems"; 
+import { hasPermission } from "@/shared/lib/permissions";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -34,7 +28,9 @@ export default function Sidebar() {
       </div>
 
       <nav className="flex-1 py-4 space-y-1 px-2">
-        {menuItems.map((item) => {
+        {menuItems
+          .filter((item) => !item.permission || hasPermission(item.permission))
+          .map((item) => {
           const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
           return (
             <Link key={item.href} href={item.href}>

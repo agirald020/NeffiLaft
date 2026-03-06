@@ -8,6 +8,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/validar" component={ValidateClients} />
+        <Route path="/" component={NotFound} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

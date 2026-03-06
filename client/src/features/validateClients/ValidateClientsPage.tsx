@@ -6,7 +6,6 @@ import IndividualValidationForm from "./components/validationForms/IndividualVal
 import IndividualResults from "./components/validationResults/IndividualResults";
 import BulkResults from "./components/validationResults/BulkResults";
 import { useValidationStore } from "./stores/validateClients.store";
-import { DebugRolesButton } from "../Auth/components/DebugRolesButton";
 
 export default function ValidateClientsPage() {
 
@@ -57,7 +56,6 @@ export default function ValidateClientsPage() {
         </Tabs>
       </div>
 
-      <DebugRolesButton />
       {/* resultados individual */}
       {results !== null && <IndividualResults />}
       {/* resultados en masivo */}
