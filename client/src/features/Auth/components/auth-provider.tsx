@@ -25,6 +25,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   async function initAuth() {
     try {
+      debugger;
       // Fetch config from server (has the correct realm, url, clientId)
       const config = await fetchKeycloakConfig();
 

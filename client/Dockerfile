@@ -1,39 +1,24 @@
-# Build stage
+# Build stage (Se mantiene igual, solo ajustamos la salida)
 FROM node:21-slim AS builder
-
 WORKDIR /app
-
-# Copy package files from root (only package.json to avoid lock file issues)
 COPY package.json ./
-
-# Install dependencies (fresh install for Linux environment)
 RUN npm install --legacy-peer-deps
-
-# Copy vite config for docker build
-COPY vite.config.docker.ts ./
 COPY vite.config.ts ./
-
-# Copy client source code
 COPY client ./client
 COPY shared ./shared
 COPY attached_assets ./attached_assets
+RUN npx vite build
 
-# Build application (only client/frontend with Vite)
-RUN npx vite build --config vite.config.docker.ts
+# Runtime stage - CAMBIAMOS A NGINX
+FROM nginx:stable-alpine
 
-# Runtime stage
-FROM node:21-slim
+# Copiamos los archivos estáticos generados por Vite
+# Ajusta la ruta si Vite los deja en /app/client/dist
+COPY --from=builder /app/client/dist /usr/share/nginx/html
 
-WORKDIR /app
+# Copiamos nuestra configuración de Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Install serve to run the built app
-RUN npm install -g serve
+EXPOSE 5010
 
-# Copy built files from builder (from dist/public where Vite outputs based on vite.config.ts)
-COPY --from=builder /app/dist/public ./
-
-# Expose port
-EXPOSE 3000
-
-# Run the application
-CMD ["serve", "-s", ".", "-l", "3000"]
+CMD ["nginx", "-g", "daemon off;"]
