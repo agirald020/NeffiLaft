@@ -80,7 +80,7 @@ public class RestrictiveListController {
      */
     @PostMapping("/report/pdf")
     public ResponseEntity<byte[]> generateReport(
-            @RequestBody GenerateReportPdfRequest request,
+            @RequestBody List<RestrictiveListEntry> data,
             @AuthenticationPrincipal Jwt jwt) {
         try {
             String userName = "Usuario del sistema";
@@ -93,14 +93,14 @@ public class RestrictiveListController {
             }
 
             TiposDocumentosDTO tiposDocumentos = tiposDocumentosService
-                    .getTiposDocumentosByCodHomologa(request.getData().get(0).getTipoDocumento());
+                    .getTiposDocumentosByCodHomologa(data.get(0).getTipoDocumento());
 
             byte[] pdf = pdfReportService.generateValidationReport(
-                    request.getClientInfo().getP_IDENTIFICACION(),
+                    data.get(0).getIdentificacion(),
                     tiposDocumentos.getDescripcion(),
-                    utils.buildFullName(request.getClientInfo()),
+                    data.get(0).getNombre(),
                     userName,
-                    request.getData());
+                    data);
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=informe_validacion_listas.pdf")
