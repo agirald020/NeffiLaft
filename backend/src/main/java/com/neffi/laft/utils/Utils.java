@@ -6,6 +6,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
+import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.dto.ValidationReportRequestDto;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,15 +40,12 @@ public class Utils {
         return request.getRemoteAddr();
     }
 
-    public String buildFullName(ValidationReportRequestDto request) {
-        if ("juridica".equalsIgnoreCase(request.getPersonType())) {
-            return request.getBusinessName() != null ? request.getBusinessName().trim() : "";
-        }
+    public String buildFullName(ValidateClientDto request) {
         StringBuilder sb = new StringBuilder();
-        if (request.getFirstName() != null && !request.getFirstName().isBlank()) sb.append(request.getFirstName().trim());
-        if (request.getSecondName() != null && !request.getSecondName().isBlank()) sb.append(" ").append(request.getSecondName().trim());
-        if (request.getFirstLastName() != null && !request.getFirstLastName().isBlank()) sb.append(" ").append(request.getFirstLastName().trim());
-        if (request.getSecondLastName() != null && !request.getSecondLastName().isBlank()) sb.append(" ").append(request.getSecondLastName().trim());
+        if (request.getP_NOMBRE_1() != null && !request.getP_NOMBRE_1().isBlank()) sb.append(request.getP_NOMBRE_1().trim());
+        if (request.getP_NOMBRE_2() != null && !request.getP_NOMBRE_2().isBlank()) sb.append(" ").append(request.getP_NOMBRE_2().trim());
+        if (request.getP_APELLIDO_1() != null && !request.getP_APELLIDO_1().isBlank()) sb.append(" ").append(request.getP_APELLIDO_1().trim());
+        if (request.getP_APELLIDO_2() != null && !request.getP_APELLIDO_2().isBlank()) sb.append(" ").append(request.getP_APELLIDO_2().trim());
         return sb.toString().trim();
     }
 }

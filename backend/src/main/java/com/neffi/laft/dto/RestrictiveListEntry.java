@@ -18,7 +18,7 @@ public class RestrictiveListEntry {
     private Long prioridadValidacion;
     private String permiteIdentificacion;
     private String permiteHomonimia;
-    private Long tipoDocumento;
+    private String tipoDocumento;
     private String identificacion;
     private String sdnName;
     private String usuario;

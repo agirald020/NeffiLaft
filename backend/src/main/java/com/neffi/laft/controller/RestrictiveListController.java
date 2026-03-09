@@ -22,10 +22,12 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.RestrictiveListEntry;
+import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
-import com.neffi.laft.dto.ValidationReportRequestDto;
+import com.neffi.laft.dto.request.GenerateReportPdfRequest;
 import com.neffi.laft.service.PdfReportService;
 import com.neffi.laft.service.RestrictiveListService;
+import com.neffi.laft.service.TiposDocumentosService;
 import com.neffi.laft.utils.Utils;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -40,6 +42,7 @@ public class RestrictiveListController {
 
     private final RestrictiveListService restrictiveListService;
     private final PdfReportService pdfReportService;
+    private final TiposDocumentosService tiposDocumentosService;
 
     @Autowired
     private Utils utils;
@@ -48,7 +51,9 @@ public class RestrictiveListController {
     private boolean bypassAuth;
 
     /**
-     * Valida un cliente contra las listas restrictivas ejecutando la función BUT_VALIDAR_LISTAS con los parámetros proporcionados.
+     * Valida un cliente contra las listas restrictivas ejecutando la función
+     * BUT_VALIDAR_LISTAS con los parámetros proporcionados.
+     * 
      * @param dto
      * @param request
      * @return
@@ -57,17 +62,23 @@ public class RestrictiveListController {
     public ResponseEntity<List<RestrictiveListEntry>> validateClient(
             @RequestBody ValidateClientDto dto, HttpServletRequest request) {
         String clientIp = utils.getClientIp(request);
-        log.info("Peticion recibida desde IP: {} - Documento: {}, Nombre: {}", 
-            clientIp, dto.getP_IDENTIFICACION(), dto.getP_NOMBRE_1());
-        
-        List<RestrictiveListEntry> results = restrictiveListService.validateClient(dto, request.getRequestURL().toString());
+        log.info("Peticion recibida desde IP: {} - Documento: {}, Nombre: {}",
+                clientIp, dto.getP_IDENTIFICACION(), dto.getP_NOMBRE_1());
+
+        List<RestrictiveListEntry> results = restrictiveListService.validateClient(dto,
+                request.getRequestURL().toString());
         return ResponseEntity.ok(results);
     }
 
-    //Se usa
-    @PostMapping("/report")
+    /**
+     * Genera un informe PDF con los resultados de la validación contra las listas restrictivas.
+     * @param request
+     * @param jwt
+     * @return
+     */
+    @PostMapping("/report/pdf")
     public ResponseEntity<byte[]> generateReport(
-            @RequestBody ValidationReportRequestDto request,
+            @RequestBody GenerateReportPdfRequest request,
             @AuthenticationPrincipal Jwt jwt) {
         try {
             String userName = "Usuario del sistema";
@@ -79,29 +90,20 @@ public class RestrictiveListController {
                 userName = jwt.getClaimAsString("preferred_username");
             }
 
-            String fullName = utils.buildFullName(request);
-            ValidateClientDto validateDto = ValidateClientDto.builder()
-                .p_IDENTIFICACION(request.getDocumentNumber())
-                .p_NOMBRE_1(request.getFirstName())
-                .p_NOMBRE_2(request.getSecondName())
-                .p_APELLIDO_1(request.getFirstLastName())
-                .p_APELLIDO_2(request.getSecondLastName())
-                .build();
-            // validateDto.setDocumentNumber(request.getDocumentNumber());
-            // validateDto.setFullName(fullName);
-            // List<RestrictiveListEntry> matches = restrictiveListService.validateClient(validateDto);
+            TiposDocumentosDTO tiposDocumentos = tiposDocumentosService
+                    .getTiposDocumentosByCodHomologa(request.getData().get(0).getTipoDocumento());
 
             byte[] pdf = pdfReportService.generateValidationReport(
-                request.getDocumentNumber(),
-                request.getPersonType(),
-                fullName,
-                userName,
-                null
-            );
+                    request.getClientInfo().getP_IDENTIFICACION(),
+                    tiposDocumentos.getDescripcion(),
+                    utils.buildFullName(request.getClientInfo()),
+                    userName,
+                    request.getData());
+
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=informe_validacion_listas.pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=informe_validacion_listas.pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
         } catch (Exception e) {
             log.error("Error generando informe PDF", e);
             return ResponseEntity.internalServerError().build();
@@ -111,12 +113,13 @@ public class RestrictiveListController {
     @GetMapping("/bulk/template")
     public ResponseEntity<byte[]> downloadTemplate() {
         try (Workbook workbook = restrictiveListService.generateBulkTemplate();
-             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                ByteArrayOutputStream out = new ByteArrayOutputStream()) {
             workbook.write(out);
             return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=plantilla_validacion_listas.xlsx")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
-                .body(out.toByteArray());
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=plantilla_validacion_listas.xlsx")
+                    .contentType(MediaType
+                            .parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                    .body(out.toByteArray());
         } catch (Exception e) {
             log.error("Error generando plantilla", e);
             return ResponseEntity.internalServerError().build();
@@ -132,8 +135,7 @@ public class RestrictiveListController {
         } catch (Exception e) {
             log.error("Error procesando archivo Excel", e);
             return ResponseEntity.badRequest().body(
-                Map.of("error", "Error procesando el archivo: " + e.getMessage())
-            );
+                    Map.of("error", "Error procesando el archivo: " + e.getMessage()));
         }
     }
 }

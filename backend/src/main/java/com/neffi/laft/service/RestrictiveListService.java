@@ -20,7 +20,9 @@ import org.springframework.web.multipart.MultipartFile;
 import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.ButValidarListasParams;
 import com.neffi.laft.dto.RestrictiveListEntry;
+import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
+import com.neffi.laft.model.TiposDocumentos;
 import com.neffi.laft.repository.RestrictiveListRepository;
 import com.neffi.laft.utils.Utils;
 
@@ -39,6 +41,9 @@ public class RestrictiveListService {
     private String descripcionEvento;
 
     private final RestrictiveListRepository restrictiveListRepository;
+
+    private final TiposDocumentosService tiposDocumentosService;
+
     private final Utils utils;
 
     /**
@@ -66,6 +71,18 @@ public class RestrictiveListService {
                 descripcionEvento);
 
         List<RestrictiveListEntry> results = restrictiveListRepository.butValidarListas(params);
+
+        results.forEach(entry -> {
+            if (entry.getTipoDocumento() != null) {
+                try {
+                    TiposDocumentosDTO tipoDoc = tiposDocumentosService.getTiposDocumentosById(Long.valueOf(entry.getTipoDocumento()));
+                    entry.setTipoDocumento(tipoDoc.getCodHomologa());
+                } catch (Exception e) {
+                    log.warn("No se pudo obtener el nombre del tipo de documento para código: {}",
+                            entry.getTipoDocumento(), e);
+                }
+            }
+        });
 
         log.info("Encontradas {} coincidencias", results.size());
         return results;

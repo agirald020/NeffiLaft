@@ -71,7 +71,7 @@ public class RestrictiveListRepositoryImpl implements RestrictiveListRepositoryC
                                 .prioridadValidacion(resultSet.getLong("PRIORIDAD_VALIDACION"))
                                 .permiteIdentificacion(resultSet.getString("PERMITE_IDENTIFICACION"))
                                 .permiteHomonimia(resultSet.getString("PERMITE_HOMONIMIA"))
-                                .tipoDocumento(resultSet.getLong("TIPO_DOCUMENTO"))
+                                .tipoDocumento(resultSet.getString("TIPO_DOCUMENTO"))
                                 .identificacion(resultSet.getString("IDENTIFICACION"))
                                 .sdnName(resultSet.getString("SDN_NAME"))
                                 .usuario(resultSet.getString("USUARIO"))
@@ -92,7 +92,6 @@ public class RestrictiveListRepositoryImpl implements RestrictiveListRepositoryC
                 
                 return results;
             }
-            
         } catch (SQLException e) {
             log.error("Error ejecutando BUT_VALIDAR_LISTAS", e);
             return new ArrayList<>();
