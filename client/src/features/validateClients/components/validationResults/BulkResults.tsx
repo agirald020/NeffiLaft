@@ -35,8 +35,7 @@ const BulkResults: FunctionComponent = () => {
   };
 
   const handleDownloadExcel = () => {
-    const results = bulkResults.flatMap((r) => r.matches);
-    if (!results || results.length === 0) {
+    if (!bulkResults || bulkResults.length === 0) {
       toast({
         title: "Sin datos",
         description: "No hay resultados para generar el informe.",
@@ -45,7 +44,7 @@ const BulkResults: FunctionComponent = () => {
       return;
     }
 
-    excelMutation.mutate(results, {
+    excelMutation.mutate(bulkResults, {
       onSuccess: (blob) => {
 
         const url = URL.createObjectURL(blob);

@@ -1,7 +1,7 @@
 //Llamadas http
 import { apiRequest } from "@/shared/lib/queryClient";
 import { ValidateClientDTO } from "../types/validateClientDTO";
-import { RestrictiveListMatch } from "../types/validateClients.types";
+import { BulkResult, RestrictiveListMatch } from "../types/validateClients.types";
 
 export const validateIndividual = async (data: ValidateClientDTO) => {
 	const res = await apiRequest("POST", "/api/laft/validate", data);
@@ -22,7 +22,7 @@ export const downloadValidationPdf = async (data: RestrictiveListMatch[]) => {
 	return res.blob();
 };
 
-export const downloadValidationExcel = async (data: RestrictiveListMatch[]) => {
+export const downloadValidationExcel = async (data: BulkResult[]) => {
 	const res = await apiRequest("POST", "/api/laft/validate/report/excel", data);
 	return res.blob();
 };
