@@ -173,6 +173,121 @@ public class RestrictiveListService {
         return workbook;
     }
 
+    /**
+     * Genera un Workbook Excel con los resultados de la validación masiva.
+     * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las coincidencias.
+     * 
+     * @param results Lista de resultados de validateBulk
+     * @return Workbook Excel con los resultados
+     */
+    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results) {
+        log.debug("Generando reporte Excel para {} registros", results.size());
+        Workbook workbook = new XSSFWorkbook();
+
+        // Crear estilos
+        CellStyle headerStyle = createHeaderStyle(workbook);
+        CellStyle warningStyle = createWarningStyle(workbook);
+
+        // Crear hoja de Resumen
+        Sheet summarySheet = workbook.createSheet("Resumen");
+        createSummarySheet(summarySheet, results, headerStyle, warningStyle);
+
+        // Crear hoja de Detalles
+        Sheet detailsSheet = workbook.createSheet("Detalles");
+        createDetailsSheet(detailsSheet, results, headerStyle, warningStyle);
+
+        return workbook;
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        font.setColor(IndexedColors.WHITE.getIndex());
+        style.setFont(font);
+        style.setFillForegroundColor(IndexedColors.BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
+    private CellStyle createWarningStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
+    private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results, 
+            CellStyle headerStyle, CellStyle warningStyle) {
+        // Headers
+        Row headerRow = sheet.createRow(0);
+        String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+            sheet.setColumnWidth(i, 5000);
+        }
+
+        // Datos
+        int rowNum = 1;
+        for (BulkValidateResultDto result : results) {
+            Row row = sheet.createRow(rowNum++);
+            
+            Cell docCell = row.createCell(0);
+            docCell.setCellValue(result.getQueryDocumentNumber());
+
+            Cell nameCell = row.createCell(1);
+            nameCell.setCellValue(result.getQueryFullName());
+
+            Cell matchCell = row.createCell(2);
+            matchCell.setCellValue(result.getMatchCount());
+            if (result.getMatchCount() > 0) {
+                matchCell.setCellStyle(warningStyle);
+            }
+        }
+
+        // Autoajustar ancho de columnas
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
+
+    private void createDetailsSheet(Sheet sheet, List<BulkValidateResultDto> results,
+            CellStyle headerStyle, CellStyle warningStyle) {
+        // Headers
+        Row headerRow = sheet.createRow(0);
+        String[] headers = { "Documento Consultado", "Nombre Consultado", "Código Lista", 
+                "Nombre (Lista)", "Tipo", "Identificación (Lista)", "Comentarios" };
+        for (int i = 0; i < headers.length; i++) {
+            Cell cell = headerRow.createCell(i);
+            cell.setCellValue(headers[i]);
+            cell.setCellStyle(headerStyle);
+            sheet.setColumnWidth(i, 5000);
+        }
+
+        // Datos
+        int rowNum = 1;
+        for (BulkValidateResultDto result : results) {
+            for (RestrictiveListEntry match : result.getMatches()) {
+                Row row = sheet.createRow(rowNum++);
+                
+                row.createCell(0).setCellValue(result.getQueryDocumentNumber());
+                row.createCell(1).setCellValue(result.getQueryFullName());
+                row.createCell(2).setCellValue(match.getCodigoLista() != null ? match.getCodigoLista().toString() : "");
+                row.createCell(3).setCellValue(match.getNombre() != null ? match.getNombre() : "");
+                row.createCell(4).setCellValue(match.getTipo() != null ? match.getTipo() : "");
+                row.createCell(5).setCellValue(match.getIdentificacion() != null ? match.getIdentificacion() : "");
+                row.createCell(6).setCellValue(match.getComentarios() != null ? match.getComentarios() : "");
+            }
+        }
+
+        // Autoajustar ancho de columnas
+        for (int i = 0; i < headers.length; i++) {
+            sheet.autoSizeColumn(i);
+        }
+    }
+
     private String getCellString(Row row, int col) {
         Cell cell = row.getCell(col);
         if (cell == null)

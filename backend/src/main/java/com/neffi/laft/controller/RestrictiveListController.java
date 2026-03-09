@@ -71,7 +71,9 @@ public class RestrictiveListController {
     }
 
     /**
-     * Genera un informe PDF con los resultados de la validación contra las listas restrictivas.
+     * Genera un informe PDF con los resultados de la validación contra las listas
+     * restrictivas.
+     * 
      * @param request
      * @param jwt
      * @return
@@ -127,15 +129,52 @@ public class RestrictiveListController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public ResponseEntity<List<BulkValidateResultDto>> validateBulk(@RequestParam("file") MultipartFile file,
+            HttpServletRequest request) {
         try {
             String clientIp = utils.getClientIp(request);
             List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             log.error("Error procesando archivo Excel", e);
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "Error procesando el archivo: " + e.getMessage()));
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    /**
+     * Genera un informe Excel con los resultados de la validación masiva contra
+     * listas restrictivas.
+     * Procesa el archivo Excel proporcionado y retorna un Excel con los resultados
+     * en dos hojas:
+     * una con el resumen de coincidencias y otra con los detalles de las
+     * coincidencias encontradas.
+     * 
+     * @param file    archivo Excel con los datos a validar
+     * @param request la solicitud HTTP
+     * @return archivo Excel con los resultados de la validación
+     */
+    @PostMapping("/report/excel")
+    public ResponseEntity<byte[]> generateBulkReportExcel(@RequestBody List<BulkValidateResultDto> data,
+            HttpServletRequest request) {
+        try {
+            String clientIp = utils.getClientIp(request);
+            log.info("Generando reporte Excel masivo desde IP: {}", clientIp);
+
+            // Generar Excel con resultados
+            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data);
+                    ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                workbook.write(out);
+
+                return ResponseEntity.ok()
+                        .header(HttpHeaders.CONTENT_DISPOSITION,
+                                "attachment; filename=informe_validacion_listas_masivo.xlsx")
+                        .contentType(MediaType
+                                .parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                        .body(out.toByteArray());
+            }
+        } catch (Exception e) {
+            log.error("Error generando reporte Excel masivo", e);
+            return ResponseEntity.internalServerError().build();
         }
     }
 }

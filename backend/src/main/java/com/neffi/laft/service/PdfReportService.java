@@ -24,13 +24,13 @@ public class PdfReportService {
     private static final float CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    private static final String[] TABLE_HEADERS = {"Documento", "Nombre", "Lista", "Fuente", "Coincidencia"};
-    private static final float[] COL_WIDTHS = {90, 140, 100, 80, 80};
+    private static final String[] TABLE_HEADERS = { "Documento", "Nombre", "Lista", "Fuente", "Coincidencia" };
+    private static final float[] COL_WIDTHS = { 90, 140, 100, 80, 80 };
     private static final float ROW_HEIGHT = 18;
 
     public byte[] generateValidationReport(String documentNumber, String personType,
-                                            String fullName, String userName,
-                                            List<RestrictiveListEntry> matches) throws IOException {
+            String fullName, String userName,
+            List<RestrictiveListEntry> matches) throws IOException {
         try (PDDocument document = new PDDocument()) {
             PDPage page = new PDPage(PDRectangle.LETTER);
             document.addPage(page);
@@ -54,7 +54,10 @@ public class PdfReportService {
 
     private static class ContentStreamHolder {
         PDPageContentStream cs;
-        ContentStreamHolder(PDPageContentStream cs) { this.cs = cs; }
+
+        ContentStreamHolder(PDPageContentStream cs) {
+            this.cs = cs;
+        }
     }
 
     private float drawHeader(PDPageContentStream cs, float y) throws IOException {
@@ -88,8 +91,8 @@ public class PdfReportService {
     }
 
     private float drawValidationInfo(PDPageContentStream cs, float y,
-                                      String documentNumber, String personType,
-                                      String fullName, String userName) throws IOException {
+            String documentNumber, String personType,
+            String fullName, String userName) throws IOException {
         String dateTime = LocalDateTime.now().format(DATE_FMT);
 
         y = drawLabelValue(cs, y, "Fecha y Hora:", dateTime);
@@ -98,8 +101,10 @@ public class PdfReportService {
 
         String personTypeLabel = "juridica".equalsIgnoreCase(personType) ? "Persona Juridica" : "Persona Natural";
         y = drawLabelValue(cs, y, "Tipo de Persona:", personTypeLabel);
-        y = drawLabelValue(cs, y, "Numero de Documento:", sanitize(documentNumber != null ? documentNumber : "No proporcionado"));
-        y = drawLabelValue(cs, y, "Nombre / Razon Social:", sanitize(fullName != null && !fullName.isBlank() ? fullName : "No proporcionado"));
+        y = drawLabelValue(cs, y, "Numero de Documento:",
+                sanitize(documentNumber != null ? documentNumber : "No proporcionado"));
+        y = drawLabelValue(cs, y, "Nombre / Razon Social:",
+                sanitize(fullName != null && !fullName.isBlank() ? fullName : "No proporcionado"));
 
         return y;
     }
@@ -121,8 +126,8 @@ public class PdfReportService {
     }
 
     private float drawResultSection(ContentStreamHolder holder, float y,
-                                     List<RestrictiveListEntry> matches,
-                                     PDDocument document) throws IOException {
+            List<RestrictiveListEntry> matches,
+            PDDocument document) throws IOException {
         boolean hasMatches = matches != null && !matches.isEmpty();
 
         holder.cs.beginText();
@@ -190,7 +195,7 @@ public class PdfReportService {
     }
 
     private float drawMatchesTable(ContentStreamHolder holder, float y, List<RestrictiveListEntry> matches,
-                                    PDDocument document) throws IOException {
+            PDDocument document) throws IOException {
         y = drawTableHeaders(holder.cs, y);
 
         for (RestrictiveListEntry match : matches) {
@@ -212,11 +217,12 @@ public class PdfReportService {
 
             float x = MARGIN;
             String[] values = {
-                // truncate(sanitize(match.getDocumentNumber()), 14),
-                // truncate(sanitize(match.getFullName()), 22),
-                // truncate(sanitize(match.getListName()), 16),
-                // truncate(sanitize(match.getListSource()), 12),
-                // truncate(sanitize(match.getMatchType()), 12)
+                    truncate(sanitize(match.getIdentificacion()), 14),
+                    truncate(sanitize(match.getSdnName()), 22),
+                    truncate(sanitize(match.getNombre()), 16),
+                    truncate(sanitize(match.getTipo()), 12),
+                    truncate(sanitize(match.getPrioridadValidacion() == 1 ? "EXACTO"
+                            : "PRIORIDAD " + match.getPrioridadValidacion()), 12)
             };
 
             for (int i = 0; i < values.length; i++) {
@@ -234,12 +240,14 @@ public class PdfReportService {
     }
 
     private String sanitize(String text) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text.replaceAll("[\\p{Cntrl}&&[^\t]]", "").replace("\t", " ");
     }
 
     private String truncate(String text, int maxLen) {
-        if (text == null) return "";
+        if (text == null)
+            return "";
         return text.length() > maxLen ? text.substring(0, maxLen - 2) + ".." : text;
     }
 }
