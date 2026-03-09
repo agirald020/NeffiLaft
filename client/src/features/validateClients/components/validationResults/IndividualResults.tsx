@@ -1,6 +1,6 @@
 // client/src/features/validateClients/components/validationResults/IndividualResults.tsx
 
-import React, { FunctionComponent, useState, useCallback } from "react";
+import React, { FunctionComponent, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -10,28 +10,27 @@ import {
 } from "lucide-react";
 import { Button } from "@/shared/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
-import { getAuthHeader } from "@/shared/lib/keycloak";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { RestrictiveListMatch } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
+import { useValidateClient } from "../../hooks/useValidateClient";
+import { ValidateClientDTO } from "../../types/validateClientDTO";
 
 interface IndividualResultsProps { }
 
 const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   const { toast } = useToast();
+  const { pdfMutation } = useValidateClient();
   const [downloadingPdf, setDownloadingPdf] = useState(false);
 
   // select only the needed bits from the store (avoids full-store re-renders)
   const results = useValidationStore(s => s.results);
   const searchContext = useValidationStore(s => s.searchContext);
   const documentNumber = useValidationStore(s => s.documentNumber);
-  const personType = useValidationStore(s => s.personType);
   const firstName = useValidationStore(s => s.firstName);
   const secondName = useValidationStore(s => s.secondName);
   const firstLastName = useValidationStore(s => s.firstLastName);
   const secondLastName = useValidationStore(s => s.secondLastName);
-  const companyName = useValidationStore(s => s.companyName);
-  const businessName = useValidationStore(s => s.businessName);
 
   // early return if nothing to show
   if (!results) return null;
@@ -145,69 +144,40 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   );
 
   // download PDF same behavior as before
-  const handleDownloadPdf = useCallback(async () => {
-    if (!results) return;
+  const handleDownloadPdf = () => {
     setDownloadingPdf(true);
-
-    try {
-      const body: Record<string, string> = {
-        documentNumber: (documentNumber || "").trim(),
-        personType,
-      };
-
-      if (personType === "natural") {
-        if ((firstName || "").trim()) body.firstName = firstName.trim();
-        if ((secondName || "").trim()) body.secondName = secondName.trim();
-        if ((firstLastName || "").trim()) body.firstLastName = firstLastName.trim();
-        if ((secondLastName || "").trim()) body.secondLastName = secondLastName.trim();
-      } else {
-        if ((companyName || "").trim()) body.businessName = companyName.trim();
-        if ((businessName || "").trim()) body.businessName = businessName.trim();
-      }
-
-      const res = await fetch("/api/laft/validate/report", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...getAuthHeader(),
-        },
-        body: JSON.stringify(body),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const text = await res.text().catch(() => res.statusText);
-        throw new Error(text || "Error generando PDF");
-      }
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `informe_validacion_${(documentNumber || "listas").trim() || "listas"}.pdf`;
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
+    if (!results || results.length === 0) {
       toast({
-        title: "Error",
-        description: err?.message || "No se pudo generar el informe PDF.",
+        title: "Sin datos",
+        description: "No hay resultados para generar el informe.",
         variant: "destructive",
       });
-    } finally {
-      setDownloadingPdf(false);
+      return;
     }
-  }, [
-    results,
-    documentNumber,
-    personType,
-    firstName,
-    secondName,
-    firstLastName,
-    secondLastName,
-    companyName,
-    businessName,
-    toast,
-  ]);
+
+    pdfMutation.mutate(results, {
+      onSuccess: (blob) => {
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `informe_validacion_${documentNumber || "listas"}.pdf`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+        setDownloadingPdf(false);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Error",
+          description: err?.message || "No se pudo generar el informe PDF.",
+          variant: "destructive",
+        });
+        setDownloadingPdf(false);
+      },
+    });
+  };
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">

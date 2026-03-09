@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { validateBulk, validateIndividual } from "../services/validateClients.service";
+import { downloadValidationExcel, downloadValidationPdf, validateBulk, validateIndividual } from "../services/validateClients.service";
 
 export const useValidateClient = () => {
 	const individualMutation = useMutation({
@@ -10,8 +10,18 @@ export const useValidateClient = () => {
 		mutationFn: validateBulk,
 	});
 
+	const pdfMutation = useMutation({
+		mutationFn: downloadValidationPdf,
+	});
+
+	const excelMutation = useMutation({
+		mutationFn: downloadValidationExcel,
+	});
+
 	return {
 		individualMutation,
 		bulkMutation,
+		pdfMutation,
+		excelMutation,
 	};
 };

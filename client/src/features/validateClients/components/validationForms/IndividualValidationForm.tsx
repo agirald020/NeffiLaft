@@ -21,9 +21,9 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
   //! selector desde zustand: selecciona sólo lo necesario para evitar re-renders globales
   // valores
   const companyName = useValidationStore(s => s.companyName);
-  const firstLastName = useValidationStore(s => s.firstLastName);
   const firstName = useValidationStore(s => s.firstName);
   const secondName = useValidationStore(s => s.secondName);
+  const firstLastName = useValidationStore(s => s.firstLastName);
   const secondLastName = useValidationStore(s => s.secondLastName);
   const documentNumber = useValidationStore(s => s.documentNumber);
   const personType = useValidationStore(s => s.personType);

@@ -1,12 +1,18 @@
 // client/src/features/validateClients/components/validationResults/BulkResults.tsx
 
-import React, { FunctionComponent, useMemo } from "react";
-import { AlertTriangle, CheckCircle2, FileText } from "lucide-react";
+import React, { FunctionComponent, useCallback, useMemo, useState } from "react";
+import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2 } from "lucide-react";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { RestrictiveListMatch } from "../../types/validateClients.types";
+import { useValidateClient } from "../../hooks/useValidateClient";
+import { useToast } from "@/shared/hooks/use-toast";
+import { Button } from "@/shared/ui/button";
+import { hasPermission } from "@/shared/lib/permissions";
 
 const BulkResults: FunctionComponent = () => {
   const bulkResults = useValidationStore((s) => s.bulkResults);
+  const { excelMutation } = useValidateClient();
+  const { toast } = useToast();
 
   if (!bulkResults || bulkResults.length === 0) return null;
 
@@ -26,6 +32,39 @@ const BulkResults: FunctionComponent = () => {
     if (!flag) return false;
     const s = String(flag).toUpperCase().trim();
     return s === "S" || s === "Y" || s === "1" || s === "T" || s === "TRUE";
+  };
+
+  const handleDownloadExcel = () => {
+    const results = bulkResults.flatMap((r) => r.matches);
+    if (!results || results.length === 0) {
+      toast({
+        title: "Sin datos",
+        description: "No hay resultados para generar el informe.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    excelMutation.mutate(results, {
+      onSuccess: (blob) => {
+
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `validacion_masiva_listas_restrictivas.xlsx`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+      },
+      onError: (err: any) => {
+        toast({
+          title: "Error",
+          description: err?.message || "No se pudo generar el archivo Excel.",
+          variant: "destructive",
+        });
+      },
+    });
   };
 
   const renderResultsTable = (matches: RestrictiveListMatch[]) => (
@@ -139,9 +178,26 @@ const BulkResults: FunctionComponent = () => {
     <div className="space-y-4">
       {/* estadísticas */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Resultados de Validación Masiva
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Resultados de Validación Masiva
+          </h2>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadExcel}
+            disabled={excelMutation.isPending || !hasPermission("validar-en-listas-reportes")}
+            className="text-xs"
+          >
+            {excelMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Descargar Excel
+          </Button>
+        </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
           <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl p-4 text-center">
