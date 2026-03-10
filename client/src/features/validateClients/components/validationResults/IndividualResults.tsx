@@ -98,7 +98,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
             // fallback logic para mostrar nombre/documento
             const displayName = match.sdnName?.trim() || match.nombre || "—";
             const documentId = match.identificacion || String(match.entNum) || "—";
-            const listName = match.descriTipoLista || match.nombre || `Lista ${match.codigoLista}`;
+            const listName = match.nombre || match.descriTipoLista ||  `Lista ${match.codigoLista}`;
             const listSource = match.tipo || match.tipoLista || "—";
             const matchLabel = match.prioridadValidacion;
             const permite = permiteVincular(match.permiteIdentificacion);

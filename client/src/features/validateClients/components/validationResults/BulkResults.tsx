@@ -98,8 +98,8 @@ const BulkResults: FunctionComponent = () => {
             const documentId =
               match.identificacion || String(match.entNum) || "—";
             const listName =
-              match.descriTipoLista ||
-              match.nombre ||
+            match.nombre ||
+            match.descriTipoLista ||
               `Lista ${match.codigoLista}`;
             const listSource = match.tipo || match.tipoLista || "—";
             const matchLabel = match.prioridadValidacion;
