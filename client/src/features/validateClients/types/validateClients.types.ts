@@ -11,7 +11,7 @@ export interface RestrictiveListMatch {
 
   // campos de validación / coincidencia
   prioridadValidacion: number;    // 1 = exacto (por convención), >1 = menor prioridad
-  permiteIdentificacion?: string | null; // 'S'/'N' u 'Y'/'N' o valores similares
+  permiteIdentificacion?: string | null; // 'SI'/'NO'/'' 
   permiteHomonimia?: string | null;      // S/N
   tipoDocumento?: string | number | null; // tipo de documento (si aplica)
   identificacion?: string | null;        // número de documento relacionado

@@ -14,6 +14,7 @@ import { useValidationStore } from "../../stores/validateClients.store";
 import type { RestrictiveListMatch } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
 import { useValidateClient } from "../../hooks/useValidateClient";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 interface IndividualResultsProps { }
 
@@ -24,7 +25,6 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
   // select only the needed bits from the store (avoids full-store re-renders)
   const results = useValidationStore(s => s.results);
-  const searchContext = useValidationStore(s => s.searchContext);
   const documentNumber = useValidationStore(s => s.documentNumber);
   const firstName = useValidationStore(s => s.firstName);
   const secondName = useValidationStore(s => s.secondName);
@@ -55,21 +55,9 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
     return "los datos consultados";
   };
 
-  const getMatchLabel = (prioridad: number | undefined) => {
-    // convención simple: prioridad === 1 -> Exacto; else Parcial
-    if (prioridad === 1) return "bg-red-600 text-white";
-    return "bg-orange-500 text-white";
-  };
-
-  const permiteVincular = (flag?: string | null) => {
-    if (!flag) return false;
-    const s = String(flag).toUpperCase().trim();
-    return s === "S" || s === "Y" || s === "1" || s === "T" || s === "TRUE";
-  };
-
   // same table you had originally, adapted to the RestrictiveListMatch type
   const renderResultsTable = (matches: RestrictiveListMatch[]) => (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-visible">
       <table className="w-full" data-testid="table-results">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50">
@@ -83,32 +71,34 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
               Lista
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Fuente
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Coincidencia
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Permite Vinculación
             </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Comentarios
+            </th>
           </tr>
         </thead>
+
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {matches.map((match) => {
-            // fallback logic para mostrar nombre/documento
             const displayName = match.sdnName?.trim() || match.nombre || "—";
             const documentId = match.identificacion || String(match.entNum) || "—";
-            const listName = match.nombre || match.descriTipoLista ||  `Lista ${match.codigoLista}`;
-            const listSource = match.tipo || match.tipoLista || "—";
-            const matchLabel = match.prioridadValidacion;
-            const permite = permiteVincular(match.permiteIdentificacion);
+            const listName = match.nombre || match.descriTipoLista || `Lista ${match.codigoLista}`;
+            const permite = !(match.permiteIdentificacion == "NO");
+            const descriTipoLista = match.descriTipoLista?.toUpperCase() || "";
+            const tipoLista = match.tipoLista?.toUpperCase();
+            const coincidencia = match.tipo ?? "—";
+            const comentario = match.comentarios2 || "—";
 
             return (
               <tr
                 key={match.entNum ?? `${match.codigoLista}-${match.identificacion ?? "no-id"}`}
                 className="hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
-                data-testid={`row-result-${match.entNum ?? match.codigoLista}`}
               >
+                {/* DOCUMENTO */}
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-2">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -121,39 +111,62 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
                   </div>
                 </td>
 
+                {/* NOMBRE */}
                 <td className="px-6 py-4">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {displayName}
                   </p>
                 </td>
 
+                {/* LISTA */}
                 <td className="px-6 py-4">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {listName}
                   </p>
                 </td>
 
+                {/* COINCIDENCIA */}
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                    {listSource}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {coincidencia}
+                    </span>
+
+                    <span
+                      className={`mt-1 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-bold border ${tipoLista === "RES"
+                          ? "bg-red-100 text-red-700 border-red-200"
+                          : "bg-orange-100 text-orange-700 border-orange-200"
+                        }`}
+                    >
+                      {descriTipoLista}
+                    </span>
+                  </div>
                 </td>
 
+                {/* PERMITE VINCULACIÓN */}
                 <td className="px-6 py-4">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getMatchLabel(matchLabel)}`}
-                  >
-                    {matchLabel === 1 ? "Exacto" : `Prioridad ${matchLabel ?? "—"}`}
-                  </span>
-                </td>
-
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite ? "bg-green-100 text-green-800 border-green-200" : "bg-red-100 text-red-800 border-red-200"}`}
-                    data-testid={`vinculacion-${match.entNum ?? match.codigoLista}`}
+                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite
+                        ? "bg-green-100 text-green-800 border-green-200"
+                        : "bg-red-100 text-red-800 border-red-200"
+                      }`}
                   >
                     {permite ? "SÍ" : "NO"}
                   </span>
+                </td>
+                {/* COMENTARIO */}
+                <td className="px-6 py-4 max-w-xs">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 cursor-help">
+                        {comentario}
+                      </p>
+                    </TooltipTrigger>
+
+                    <TooltipContent side="top" align="start">
+                      {comentario}
+                    </TooltipContent>
+                  </Tooltip>
                 </td>
               </tr>
             );

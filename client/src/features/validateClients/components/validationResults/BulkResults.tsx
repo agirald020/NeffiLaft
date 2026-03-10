@@ -8,6 +8,7 @@ import { useValidateClient } from "../../hooks/useValidateClient";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/shared/ui/button";
 import { hasPermission } from "@/shared/lib/permissions";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 const BulkResults: FunctionComponent = () => {
   const bulkResults = useValidationStore((s) => s.bulkResults);
@@ -22,17 +23,6 @@ const BulkResults: FunctionComponent = () => {
     const clean = total - withMatches;
     return { total, withMatches, clean };
   }, [bulkResults]);
-
-  const getMatchLabel = (prioridad: number | undefined) => {
-    if (prioridad === 1) return "bg-red-600 text-white";
-    return "bg-orange-500 text-white";
-  };
-
-  const permiteVincular = (flag?: string | null) => {
-    if (!flag) return false;
-    const s = String(flag).toUpperCase().trim();
-    return s === "S" || s === "Y" || s === "1" || s === "T" || s === "TRUE";
-  };
 
   const handleDownloadExcel = () => {
     if (!bulkResults || bulkResults.length === 0) {
@@ -67,7 +57,7 @@ const BulkResults: FunctionComponent = () => {
   };
 
   const renderResultsTable = (matches: RestrictiveListMatch[]) => (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto overflow-y-visible">
       <table className="w-full" data-testid="table-results">
         <thead>
           <tr className="bg-gray-50 dark:bg-gray-800/50">
@@ -81,13 +71,13 @@ const BulkResults: FunctionComponent = () => {
               Lista
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Fuente
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Coincidencia
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Permite Vinculación
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Comentarios
             </th>
           </tr>
         </thead>
@@ -95,24 +85,21 @@ const BulkResults: FunctionComponent = () => {
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {matches.map((match) => {
             const displayName = match.sdnName?.trim() || match.nombre || "—";
-            const documentId =
-              match.identificacion || String(match.entNum) || "—";
-            const listName =
-            match.nombre ||
-            match.descriTipoLista ||
-              `Lista ${match.codigoLista}`;
-            const listSource = match.tipo || match.tipoLista || "—";
-            const matchLabel = match.prioridadValidacion;
-            const permite = permiteVincular(match.permiteIdentificacion);
+            const documentId = match.identificacion || String(match.entNum) || "—";
+            const listName = match.nombre || match.descriTipoLista || `Lista ${match.codigoLista}`;
+            // si prefieres usar la función permiteVincular existente, cámbialo
+            const permite = !(match.permiteIdentificacion === "NO");
+            const descriTipoLista = match.descriTipoLista?.toUpperCase() || "";
+            const tipoLista = match.tipoLista?.toUpperCase();
+            const coincidencia = match.tipo ?? "—";
+            const comentario = match.comentarios2 || "—";
 
             return (
               <tr
-                key={
-                  match.entNum ??
-                  `${match.codigoLista}-${match.identificacion ?? "no-id"}`
-                }
+                key={match.entNum ?? `${match.codigoLista}-${match.identificacion ?? "no-id"}`}
                 className="hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
               >
+                {/* DOCUMENTO */}
                 <td className="px-6 py-4">
                   <div className="flex items-center space-x-2">
                     <FileText className="w-4 h-4 text-gray-400" />
@@ -125,36 +112,39 @@ const BulkResults: FunctionComponent = () => {
                   </div>
                 </td>
 
+                {/* NOMBRE */}
                 <td className="px-6 py-4">
                   <p className="text-sm font-medium text-gray-900 dark:text-white">
                     {displayName}
                   </p>
                 </td>
 
+                {/* LISTA */}
                 <td className="px-6 py-4">
                   <p className="text-sm text-gray-700 dark:text-gray-300">
                     {listName}
                   </p>
                 </td>
 
+                {/* COINCIDENCIA (antes 'Fuente') */}
                 <td className="px-6 py-4">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                    {listSource}
-                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {coincidencia}
+                    </span>
+
+                    <span
+                      className={`mt-1 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-bold border ${tipoLista === "RES"
+                          ? "bg-red-100 text-red-700 border-red-200"
+                          : "bg-orange-100 text-orange-700 border-orange-200"
+                        }`}
+                    >
+                      {descriTipoLista}
+                    </span>
+                  </div>
                 </td>
 
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold ${getMatchLabel(
-                      matchLabel
-                    )}`}
-                  >
-                    {matchLabel === 1
-                      ? "Exacto"
-                      : `Prioridad ${matchLabel ?? "—"}`}
-                  </span>
-                </td>
-
+                {/* PERMITE VINCULACIÓN */}
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite
@@ -164,6 +154,23 @@ const BulkResults: FunctionComponent = () => {
                   >
                     {permite ? "SÍ" : "NO"}
                   </span>
+                </td>
+
+                {/* COMENTARIOS con Radix Tooltip (Portal) */}
+                <td className="px-6 py-4 max-w-xs">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2 cursor-help">
+                        {comentario}
+                      </p>
+                    </TooltipTrigger>
+
+                    <TooltipContent side="top" align="start">
+                      <div className="max-w-[420px] text-xs leading-relaxed ">
+                        {comentario}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
                 </td>
               </tr>
             );
