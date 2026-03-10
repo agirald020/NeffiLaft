@@ -14,7 +14,6 @@ import { useValidationStore } from "../../stores/validateClients.store";
 import type { RestrictiveListMatch } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
 import { useValidateClient } from "../../hooks/useValidateClient";
-import { ValidateClientDTO } from "../../types/validateClientDTO";
 
 interface IndividualResultsProps { }
 
@@ -32,8 +31,29 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   const firstLastName = useValidationStore(s => s.firstLastName);
   const secondLastName = useValidationStore(s => s.secondLastName);
 
+  const fullName = [firstName, secondName, firstLastName, secondLastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
   // early return if nothing to show
   if (!results) return null;
+
+  const searchLabel = () => {
+    if (documentNumber && fullName) {
+      return `el documento ${documentNumber} y el nombre "${fullName}"`;
+    }
+
+    if (documentNumber) {
+      return `el documento ${documentNumber}`;
+    }
+
+    if (fullName) {
+      return `el nombre "${fullName}"`;
+    }
+
+    return "los datos consultados";
+  };
 
   const getMatchLabel = (prioridad: number | undefined) => {
     // convención simple: prioridad === 1 -> Exacto; else Parcial
@@ -169,12 +189,12 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
         setDownloadingPdf(false);
       },
       onError: (err: any) => {
+        setDownloadingPdf(false);
         toast({
           title: "Error",
           description: err?.message || "No se pudo generar el informe PDF.",
           variant: "destructive",
         });
-        setDownloadingPdf(false);
       },
     });
   };
@@ -230,7 +250,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
           <CheckCircle2 className="w-16 h-16 text-green-400 mx-auto mb-4" />
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Sin reportes</h3>
           <p className="text-gray-500 max-w-md mx-auto mb-4">
-            El documento <span className="font-semibold">{searchContext?.value}</span> no presenta coincidencias en las listas restrictivas consultadas.
+            No se encontraron coincidencias para {searchLabel()} en las listas restrictivas consultadas.
           </p>
           <span className="inline-flex items-center px-4 py-2 rounded-full text-sm font-bold border bg-green-100 text-green-800 border-green-200" data-testid="vinculacion-permitida">
             Permite Vinculación: SÍ

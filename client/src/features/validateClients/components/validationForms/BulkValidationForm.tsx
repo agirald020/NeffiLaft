@@ -52,6 +52,9 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
   const handleBulkSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    setResults(null);
+    setBulkResults(null);
+    
     if (!selectedFile) {
       toast({
         title: "Archivo requerido",

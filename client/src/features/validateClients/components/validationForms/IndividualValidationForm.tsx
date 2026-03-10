@@ -13,6 +13,7 @@ import { hasPermission } from "@/shared/lib/permissions";
 
 interface IndividualValidationFormProps { }
 
+
 const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps> = () => {
   // !hooks
   const { toast } = useToast();
@@ -41,6 +42,17 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
   const setBulkResults = useValidationStore(s => s.setBulkResults);
   const setSearchContext = useValidationStore(s => s.setSearchContext);
 
+  const clearNaturalFields = () => {
+    setFirstName("");
+    setSecondName("");
+    setFirstLastName("");
+    setSecondLastName("");
+  };
+
+  const clearJuridicalFields = () => {
+    setCompanyName("");
+  };
+
   //! helpers locales
   const buildFullName = () => {
     if (personType === "juridica") return companyName.trim();
@@ -49,6 +61,8 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       .filter(Boolean)
       .join(" ");
   };
+
+  const sanitizeWord = (value: string) => value.replace(/\s/g, "");
 
   const showResultToast = (count: number) => {
     if (count > 0) {
@@ -79,11 +93,38 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
     };
 
   };
+
+  const handleNaturalPerson = () => {
+    setPersonType("natural");
+    clearJuridicalFields();
+  };
+
+  const handleJuridicalPerson = () => {
+    setPersonType("juridica");
+    clearNaturalFields();
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    setResults(null);
+    setBulkResults(null);
     const doc = documentNumber.trim();
     const fullName = buildFullName().trim();
+
+    if (personType === "natural") {
+      const hasName = firstName.trim() || secondName.trim();
+      const hasLastName = firstLastName.trim() || secondLastName.trim();
+
+      if (!doc && (!hasName || !hasLastName)) {
+        toast({
+          title: "Datos insuficientes",
+          description: "Debe ingresar al menos un nombre y un apellido o el número de documento.",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
 
     if (!documentNumber.trim() && !buildFullName().trim()) {
       toast({
@@ -133,7 +174,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
         <div className="flex space-x-3">
           <button
             type="button"
-            onClick={() => setPersonType("natural")}
+            onClick={handleNaturalPerson}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${personType === "natural"
               ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
               : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
@@ -145,7 +186,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
           </button>
           <button
             type="button"
-            onClick={() => setPersonType("juridica")}
+            onClick={handleJuridicalPerson}
             className={`flex-1 flex items-center justify-center space-x-2 px-4 py-3 rounded-xl border-2 transition-all ${personType === "juridica"
               ? "border-red-500 bg-red-50 dark:bg-red-950/30 text-red-700 dark:text-red-400"
               : "border-gray-200 dark:border-gray-700 text-gray-500 hover:border-gray-300"
@@ -168,9 +209,13 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
           <Input
             id="documentNumber"
             type="text"
+            inputMode="numeric"
             placeholder="Ej: 1023456789"
             value={documentNumber}
-            onChange={(e) => setDocumentNumber(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, ""); // elimina todo lo que no sea número
+              setDocumentNumber(value);
+            }}
             className="h-10"
             data-testid="input-document-number"
           />
@@ -210,7 +255,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: CARLOS"
                   value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
+                    onChange={(e) => setFirstName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-first-name"
                 />
@@ -224,7 +269,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: ANDRÉS"
                   value={secondName}
-                  onChange={(e) => setSecondName(e.target.value)}
+                    onChange={(e) => setSecondName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-second-name"
                 />
@@ -240,7 +285,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: MARTÍNEZ"
                   value={firstLastName}
-                  onChange={(e) => setFirstLastName(e.target.value)}
+                  onChange={(e) => setFirstLastName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-first-lastname"
                 />
@@ -254,7 +299,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: LÓPEZ"
                   value={secondLastName}
-                  onChange={(e) => setSecondLastName(e.target.value)}
+                  onChange={(e) => setSecondLastName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-second-lastname"
                 />

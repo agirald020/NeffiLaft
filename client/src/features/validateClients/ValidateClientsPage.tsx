@@ -35,19 +35,48 @@ export default function ValidateClientsPage() {
       {/* caja principal con tabs */}
       <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 p-6 mb-8">
         <Tabs defaultValue="individual" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="individual" className="flex items-center space-x-2" data-testid="tab-individual">
+          <TabsList className="grid w-full grid-cols-2 mb-6 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+
+            <TabsTrigger
+              value="individual"
+              data-testid="tab-individual"
+              className="
+                flex items-center justify-center space-x-2
+                px-3 py-1.5 text-sm rounded-md transition-all
+                text-gray-600 dark:text-gray-300
+                data-[state=active]:bg-white
+                dark:data-[state=active]:bg-gray-900
+                data-[state=active]:text-red-600
+                data-[state=active]:shadow-sm
+              "
+            >
               <Search className="w-4 h-4" />
               <span>Validación Individual</span>
             </TabsTrigger>
-            <TabsTrigger value="bulk" className="flex items-center space-x-2" data-testid="tab-bulk">
+
+            <TabsTrigger
+              value="bulk"
+              data-testid="tab-bulk"
+              className="
+                flex items-center justify-center space-x-2
+                px-3 py-1.5 text-sm rounded-md transition-all
+                
+                text-gray-600 dark:text-gray-300
+                
+                data-[state=active]:bg-white
+                dark:data-[state=active]:bg-gray-900
+                data-[state=active]:text-red-600
+                data-[state=active]:shadow-sm
+              "
+            >
               <Upload className="w-4 h-4" />
               <span>Carga Masiva</span>
             </TabsTrigger>
+
           </TabsList>
 
           <TabsContent value="individual">
-            <IndividualValidationForm/>
+            <IndividualValidationForm />
           </TabsContent>
 
           <TabsContent value="bulk">
