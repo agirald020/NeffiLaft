@@ -44,6 +44,7 @@
   font-weight: 700 !important;
   font-size: 1.8rem !important;
   text-transform: uppercase;
+  font-weight: 600;
 }
 
 /* 7. Logo superior: NEFFI SSO (solo texto) */
@@ -104,5 +105,6 @@
 
   .pf-c-login__main-header h1 {
     font-size: 15px;
+    font-weight: 600;
   }
 }

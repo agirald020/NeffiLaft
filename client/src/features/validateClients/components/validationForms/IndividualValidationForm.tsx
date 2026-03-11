@@ -312,7 +312,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       {/* BOTÓN VALIDAR */}
       <Button
         type="submit"
-        disabled={individualMutation.isPending || !hasPermission("validacion-individual-R")}
+        disabled={individualMutation.isPending || !hasPermission("laft:BtnValidarListasIndividual")}
         className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
         data-testid="button-validate"
       >

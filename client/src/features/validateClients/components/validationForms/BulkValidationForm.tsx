@@ -206,7 +206,7 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
       {/* BOTÓN VALIDAR */}
       <Button
         type="submit"
-        disabled={bulkMutation.isPending || !selectedFile || !hasPermission("validacion-masiva-R")}
+        disabled={bulkMutation.isPending || !selectedFile || !hasPermission("laft:BtnValidarListasMasivos")}
         className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
         data-testid="button-validate-bulk"
       >

@@ -244,7 +244,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
             variant="outline"
             size="sm"
             onClick={handleDownloadPdf}
-            disabled={downloadingPdf || !hasPermission("validar-en-listas-reportes")}
+            disabled={downloadingPdf || !hasPermission("laft:BtnDescargarPdfListaIndividual")}
             className="text-xs"
             data-testid="button-download-pdf"
           >

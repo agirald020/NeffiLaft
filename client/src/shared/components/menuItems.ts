@@ -5,6 +5,6 @@ export const menuItems = [
     label: "Validar en Listas",
     href: "/validar",
     icon: ShieldCheck,
-    permission: "validar-en-listas",
+    permission: "laft:MenuValidarEnListas",
   },
 ];

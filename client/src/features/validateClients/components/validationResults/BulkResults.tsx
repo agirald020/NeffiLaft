@@ -193,7 +193,7 @@ const BulkResults: FunctionComponent = () => {
             variant="outline"
             size="sm"
             onClick={handleDownloadExcel}
-            disabled={excelMutation.isPending || !hasPermission("validar-en-listas-reportes")}
+            disabled={excelMutation.isPending || !hasPermission("laft:BtnExcelDescargarListaMasivos")}
             className="text-xs"
           >
             {excelMutation.isPending ? (
