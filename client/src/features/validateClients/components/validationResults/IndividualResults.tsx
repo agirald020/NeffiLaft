@@ -25,21 +25,16 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
   // select only the needed bits from the store (avoids full-store re-renders)
   const results = useValidationStore(s => s.results);
-  const documentNumber = useValidationStore(s => s.documentNumber);
-  const firstName = useValidationStore(s => s.firstName);
-  const secondName = useValidationStore(s => s.secondName);
-  const firstLastName = useValidationStore(s => s.firstLastName);
-  const secondLastName = useValidationStore(s => s.secondLastName);
-
-  const fullName = [firstName, secondName, firstLastName, secondLastName]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
+  const searchContext = useValidationStore(s => s.searchContext);
 
   // early return if nothing to show
   if (!results) return null;
 
   const searchLabel = () => {
+    if (!searchContext) return "los datos consultados";
+
+    const { documentNumber, fullName } = searchContext;
+
     if (documentNumber && fullName) {
       return `el documento ${documentNumber} y el nombre "${fullName}"`;
     }
@@ -195,7 +190,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
         const link = document.createElement("a");
         link.href = url;
-        link.download = `informe_validacion_${documentNumber || "listas"}.pdf`;
+        link.download = `informe_validacion_${results?.[0]?.identificacion || "listas"}.pdf`;
         link.click();
 
         URL.revokeObjectURL(url);

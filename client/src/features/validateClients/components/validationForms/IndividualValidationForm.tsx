@@ -157,7 +157,11 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
         // actualizamos store para que otros componentes consuman
         setResults(data);
         setBulkResults(null);
-        setSearchContext({ type: "individual", value: documentNumber });
+        setSearchContext({
+          type: "individual",
+          documentNumber: doc,
+          fullName: fullName,
+        });
         showResultToast(data.length);
       },
       onError: (err: any) => {
