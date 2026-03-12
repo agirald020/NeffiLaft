@@ -22,7 +22,11 @@ interface ValidationState {
 	bulkResults: BulkResult[] | null;
 
 	// ----- UI -----
-	searchContext: { type: string; value: string } | null;
+	searchContext: {
+		type: "individual" | "bulk";
+		documentNumber?: string;
+		fullName?: string;
+	} | null;
 
 	// ----- Actions -----
 	setDocumentNumber: (value: string) => void;
@@ -39,7 +43,11 @@ interface ValidationState {
 	setSelectedFile: (file: File | null) => void;
 	setBulkResults: (data: BulkResult[] | null) => void;
 
-	setSearchContext: (ctx: { type: string; value: string } | null) => void;
+	setSearchContext: (ctx: {
+		type: "individual" | "bulk";
+		documentNumber?: string;
+		fullName?: string;
+	} | null) => void;
 
 	resetIndividual: () => void;
 	resetBulk: () => void;
