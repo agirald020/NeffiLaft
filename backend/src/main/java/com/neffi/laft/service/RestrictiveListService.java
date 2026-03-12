@@ -1,6 +1,8 @@
 package com.neffi.laft.service;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +24,6 @@ import com.neffi.laft.dto.ButValidarListasParams;
 import com.neffi.laft.dto.RestrictiveListEntry;
 import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
-import com.neffi.laft.model.TiposDocumentos;
 import com.neffi.laft.repository.RestrictiveListRepository;
 import com.neffi.laft.utils.Utils;
 
@@ -33,6 +34,8 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @RequiredArgsConstructor
 public class RestrictiveListService {
+
+    private static final DateTimeFormatter REPORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
     private static final String[] BULK_TEMPLATE_COLUMNS = {
             "Número de Documento", "Primer Nombre", "Segundo Nombre",
@@ -217,15 +220,15 @@ public class RestrictiveListService {
 
         // Crear estilos
         CellStyle headerStyle = createHeaderStyle(workbook);
-        CellStyle warningStyle = createWarningStyle(workbook);
 
         // Crear hoja de Resumen
         Sheet summarySheet = workbook.createSheet("Resumen");
-        createSummarySheet(summarySheet, results, headerStyle, warningStyle);
+        createSummarySheet(summarySheet, results, headerStyle);
+
 
         // Crear hoja de Detalles
         Sheet detailsSheet = workbook.createSheet("Detalles");
-        createDetailsSheet(detailsSheet, results, headerStyle, warningStyle);
+        createDetailsSheet(detailsSheet, results, headerStyle);
 
         return workbook;
     }
@@ -241,17 +244,34 @@ public class RestrictiveListService {
         return style;
     }
 
-    private CellStyle createWarningStyle(Workbook workbook) {
-        CellStyle style = workbook.createCellStyle();
-        style.setFillForegroundColor(IndexedColors.YELLOW.getIndex());
-        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-        return style;
-    }
-
     private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results,
-            CellStyle headerStyle, CellStyle warningStyle) {
+            CellStyle headerStyle) {
+        CellStyle metadataLabelStyle = sheet.getWorkbook().createCellStyle();
+        Font metadataLabelFont = sheet.getWorkbook().createFont();
+        metadataLabelFont.setBold(true);
+        metadataLabelStyle.setFont(metadataLabelFont);
+
+        // Metadatos en A1:B3
+        Row processedRow = sheet.createRow(0);
+        Cell processedLabelCell = processedRow.createCell(0);
+        processedLabelCell.setCellValue("Registros Procesados");
+        processedLabelCell.setCellStyle(metadataLabelStyle);
+        processedRow.createCell(1).setCellValue(results.size());
+
+        Row reportDateRow = sheet.createRow(1);
+        Cell reportDateLabelCell = reportDateRow.createCell(0);
+        reportDateLabelCell.setCellValue("Fecha de generación del informe");
+        reportDateLabelCell.setCellStyle(metadataLabelStyle);
+        reportDateRow.createCell(1).setCellValue(LocalDateTime.now().format(REPORT_DATE_FORMAT));
+
+        Row userRow = sheet.createRow(2);
+        Cell userLabelCell = userRow.createCell(0);
+        userLabelCell.setCellValue("Usuario generador");
+        userLabelCell.setCellStyle(metadataLabelStyle);
+        userRow.createCell(1).setCellValue(utils.getCurrentUsername());
+
         // Headers
-        Row headerRow = sheet.createRow(0);
+        Row headerRow = sheet.createRow(4);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -261,7 +281,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 1;
+        int rowNum = 5;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 
@@ -273,9 +293,6 @@ public class RestrictiveListService {
 
             Cell matchCell = row.createCell(2);
             matchCell.setCellValue(result.getMatchCount());
-            if (result.getMatchCount() > 0) {
-                matchCell.setCellStyle(warningStyle);
-            }
         }
 
         // Autoajustar ancho de columnas
@@ -285,7 +302,7 @@ public class RestrictiveListService {
     }
 
     private void createDetailsSheet(Sheet sheet, List<BulkValidateResultDto> results,
-            CellStyle headerStyle, CellStyle warningStyle) {
+            CellStyle headerStyle) {
         // Headers
         Row headerRow = sheet.createRow(0);
         String[] headers = { "Documento Consultado", "Nombre Consultado", "Código Lista",
