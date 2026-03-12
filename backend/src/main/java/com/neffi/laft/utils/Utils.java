@@ -6,8 +6,6 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.stereotype.Component;
 
-import com.neffi.laft.dto.ValidateClientDto;
-
 import jakarta.servlet.http.HttpServletRequest;
 
 @Component
@@ -37,14 +35,5 @@ public class Utils {
         
         // Obtiene la IP remota directa del socket
         return request.getRemoteAddr();
-    }
-
-    public String buildFullName(ValidateClientDto request) {
-        StringBuilder sb = new StringBuilder();
-        if (request.getP_NOMBRE_1() != null && !request.getP_NOMBRE_1().isBlank()) sb.append(request.getP_NOMBRE_1().trim());
-        if (request.getP_NOMBRE_2() != null && !request.getP_NOMBRE_2().isBlank()) sb.append(" ").append(request.getP_NOMBRE_2().trim());
-        if (request.getP_APELLIDO_1() != null && !request.getP_APELLIDO_1().isBlank()) sb.append(" ").append(request.getP_APELLIDO_1().trim());
-        if (request.getP_APELLIDO_2() != null && !request.getP_APELLIDO_2().isBlank()) sb.append(" ").append(request.getP_APELLIDO_2().trim());
-        return sb.toString().trim();
     }
 }

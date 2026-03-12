@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Workbook;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -42,9 +41,7 @@ public class RestrictiveListController {
     private final RestrictiveListService restrictiveListService;
     private final PdfReportService pdfReportService;
     private final TiposDocumentosService tiposDocumentosService;
-
-    @Autowired
-    private Utils utils;
+    private final Utils utils;
 
     @Value("${app.bypass-auth:false}")
     private boolean bypassAuth;

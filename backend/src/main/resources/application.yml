@@ -8,7 +8,7 @@ spring:
   datasource:
     url: jdbc:oracle:thin:@//${DB_HOST:172.25.8.9}:${DB_PORT:1521}/${DB_SCHEMA:ACBTEST}
     username: ${DB_USERNAME:ACCION}
-    password: ${DB_PASSWROD:ACBTEST}
+    password: ${DB_PASSWORD:ACBTEST}
     driver-class-name: oracle.jdbc.driver.OracleDriver
   jpa:
     hibernate:
