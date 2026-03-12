@@ -3,7 +3,7 @@
 import React, { FunctionComponent, useCallback, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2 } from "lucide-react";
 import { useValidationStore } from "../../stores/validateClients.store";
-import type { RestrictiveListMatch } from "../../types/validateClients.types";
+import type { BulkResult, RestrictiveListMatch } from "../../types/validateClients.types";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import { useToast } from "@/shared/hooks/use-toast";
 import { Button } from "@/shared/ui/button";
@@ -84,9 +84,9 @@ const BulkResults: FunctionComponent = () => {
 
         <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
           {matches.map((match) => {
-            const displayName = match.sdnName?.trim() || match.nombre || "—";
+            const displayName = match.sdnName?.trim() || "—";
             const documentId = match.identificacion || String(match.entNum) || "—";
-            const listName = match.nombre || match.descriTipoLista || `Lista ${match.codigoLista}`;
+            const listName = match.nombre || `Lista ${match.codigoLista}`;
             // si prefieres usar la función permiteVincular existente, cámbialo
             const permite = !(match.permiteIdentificacion === "NO");
             const descriTipoLista = match.descriTipoLista?.toUpperCase() || "";
@@ -227,7 +227,7 @@ const BulkResults: FunctionComponent = () => {
         </div>
       </div>
 
-      {bulkResults.map((result, idx) => (
+      {bulkResults.map((result: BulkResult, idx) => (
         <div
           key={idx}
           className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border overflow-hidden ${result.matchCount > 0
@@ -265,7 +265,23 @@ const BulkResults: FunctionComponent = () => {
             </span>
           </div>
 
-          {result.matchCount > 0 && renderResultsTable(result.matches)}
+          {renderResultsTable(
+            result.matchCount > 0
+              ? result.matches
+              : [
+                {
+                  entNum: 0,
+                  identificacion: result.queryDocumentNumber,
+                  sdnName: result.queryFullName.trim() ?? "SIN NOMBRE",
+                  nombre: "SIN COINCIDENCIA",
+                  descriTipoLista: "SIN COINCIDENCIA",
+                  tipo: "",
+                  permiteIdentificacion: "SI",
+                  tipoDocumento: "N/A",
+                  comentarios2: "Sin coincidencias en listas restrictivas",
+                } as any,
+              ]
+          )}
         </div>
       ))}
     </div>
