@@ -98,7 +98,7 @@ public class RestrictiveListController {
             byte[] pdf = pdfReportService.generateValidationReport(
                     data.get(0).getIdentificacion(),
                     tiposDocumentos.getDescripcion(),
-                    data.get(0).getNombre(),
+                    data.get(0).getSdnName(),
                     userName,
                     data);
 
@@ -129,7 +129,7 @@ public class RestrictiveListController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<List<BulkValidateResultDto>> validateBulk(@RequestParam("file") MultipartFile file,
+    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file,
             HttpServletRequest request) {
         try {
             String clientIp = utils.getClientIp(request);
@@ -137,7 +137,8 @@ public class RestrictiveListController {
             return ResponseEntity.ok(results);
         } catch (Exception e) {
             log.error("Error procesando archivo Excel", e);
-            return ResponseEntity.internalServerError().build();
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("error", e.getMessage()));
         }
     }
 

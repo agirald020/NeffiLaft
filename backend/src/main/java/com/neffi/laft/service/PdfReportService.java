@@ -6,6 +6,7 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
@@ -27,6 +29,11 @@ public class PdfReportService {
     private static final String[] TABLE_HEADERS = { "Documento", "Nombre", "Lista", "Fuente", "Coincidencia" };
     private static final float[] COL_WIDTHS = { 90, 140, 100, 80, 80 };
     private static final float ROW_HEIGHT = 18;
+    private static final float TABLE_FONT_SIZE = 8f;
+    private static final float TABLE_LINE_HEIGHT = 10f;
+    private static final float CELL_HORIZONTAL_PADDING = 4f;
+    private static final float CELL_TOP_PADDING = 8f;
+    private static final float CELL_BOTTOM_PADDING = 4f;
 
     public byte[] generateValidationReport(String documentNumber, String personType,
             String fullName, String userName,
@@ -199,7 +206,27 @@ public class PdfReportService {
         y = drawTableHeaders(holder.cs, y);
 
         for (RestrictiveListEntry match : matches) {
-            if (y < MARGIN + 40) {
+            String[] values = {
+                sanitize(match.getIdentificacion()),
+                sanitize(match.getSdnName()),
+                sanitize(match.getNombre()),
+                sanitize(match.getComentarios2()),
+                sanitize(match.getTipo())
+            };
+
+            List<List<String>> wrappedValues = new ArrayList<>();
+            int maxLines = 1;
+            for (int i = 0; i < values.length; i++) {
+            float maxTextWidth = COL_WIDTHS[i] - (CELL_HORIZONTAL_PADDING * 2);
+            List<String> lines = wrapText(values[i], maxTextWidth, PDType1Font.HELVETICA, TABLE_FONT_SIZE);
+            wrappedValues.add(lines);
+            maxLines = Math.max(maxLines, lines.size());
+            }
+
+            float rowHeight = Math.max(ROW_HEIGHT,
+                CELL_TOP_PADDING + CELL_BOTTOM_PADDING + ((maxLines - 1) * TABLE_LINE_HEIGHT));
+
+            if (y - rowHeight < MARGIN + 20) {
                 holder.cs.close();
                 PDPage newPage = new PDPage(PDRectangle.LETTER);
                 document.addPage(newPage);
@@ -216,27 +243,110 @@ public class PdfReportService {
             holder.cs.setStrokingColor(0f, 0f, 0f);
 
             float x = MARGIN;
-            String[] values = {
-                    truncate(sanitize(match.getIdentificacion()), 14),
-                    truncate(sanitize(match.getSdnName()), 22),
-                    truncate(sanitize(match.getNombre()), 16),
-                    truncate(sanitize(match.getTipo()), 12),
-                    truncate(sanitize(match.getPrioridadValidacion() == 1 ? "EXACTO"
-                            : "PRIORIDAD " + match.getPrioridadValidacion()), 12)
-            };
-
-            for (int i = 0; i < values.length; i++) {
-                holder.cs.beginText();
-                holder.cs.setFont(PDType1Font.HELVETICA, 8);
-                holder.cs.newLineAtOffset(x + 4, y - 8);
-                holder.cs.showText(values[i]);
-                holder.cs.endText();
+            for (int i = 0; i < wrappedValues.size(); i++) {
+                List<String> lines = wrappedValues.get(i);
+                for (int lineIndex = 0; lineIndex < lines.size(); lineIndex++) {
+                    holder.cs.beginText();
+                    holder.cs.setFont(PDType1Font.HELVETICA, TABLE_FONT_SIZE);
+                    holder.cs.newLineAtOffset(x + CELL_HORIZONTAL_PADDING,
+                            y - CELL_TOP_PADDING - (lineIndex * TABLE_LINE_HEIGHT));
+                    holder.cs.showText(lines.get(lineIndex));
+                    holder.cs.endText();
+                }
                 x += COL_WIDTHS[i];
             }
-            y -= ROW_HEIGHT;
+            y -= rowHeight;
         }
 
         return y;
+    }
+
+    private List<String> wrapText(String text, float maxWidth, PDFont font, float fontSize) throws IOException {
+        List<String> lines = new ArrayList<>();
+        String sanitized = sanitize(text);
+
+        if (sanitized.isBlank()) {
+            lines.add("");
+            return lines;
+        }
+
+        String[] paragraphs = sanitized.split("\\R");
+        for (String paragraph : paragraphs) {
+            String trimmed = paragraph.trim();
+            if (trimmed.isEmpty()) {
+                lines.add("");
+                continue;
+            }
+
+            String currentLine = "";
+            String[] words = trimmed.split("\\s+");
+
+            for (String word : words) {
+                String candidate = currentLine.isEmpty() ? word : currentLine + " " + word;
+                if (getTextWidth(candidate, font, fontSize) <= maxWidth) {
+                    currentLine = candidate;
+                    continue;
+                }
+
+                if (!currentLine.isEmpty()) {
+                    lines.add(currentLine);
+                    currentLine = "";
+                }
+
+                if (getTextWidth(word, font, fontSize) <= maxWidth) {
+                    currentLine = word;
+                    continue;
+                }
+
+                List<String> chunks = splitLongWord(word, maxWidth, font, fontSize);
+                if (chunks.size() > 1) {
+                    lines.addAll(chunks.subList(0, chunks.size() - 1));
+                }
+                currentLine = chunks.get(chunks.size() - 1);
+            }
+
+            if (!currentLine.isEmpty()) {
+                lines.add(currentLine);
+            }
+        }
+
+        if (lines.isEmpty()) {
+            lines.add("");
+        }
+
+        return lines;
+    }
+
+    private List<String> splitLongWord(String word, float maxWidth, PDFont font, float fontSize) throws IOException {
+        List<String> chunks = new ArrayList<>();
+        StringBuilder chunk = new StringBuilder();
+
+        for (int i = 0; i < word.length(); i++) {
+            String candidate = chunk.toString() + word.charAt(i);
+            if (!chunk.isEmpty() && getTextWidth(candidate, font, fontSize) > maxWidth) {
+                chunks.add(chunk.toString());
+                chunk = new StringBuilder().append(word.charAt(i));
+            } else {
+                chunk.append(word.charAt(i));
+            }
+        }
+
+        if (!chunk.isEmpty()) {
+            chunks.add(chunk.toString());
+        }
+
+        if (chunks.isEmpty()) {
+            chunks.add("");
+        }
+
+        return chunks;
+    }
+
+    private float getTextWidth(String text, PDFont font, float fontSize) throws IOException {
+        if (text == null || text.isEmpty()) {
+            return 0f;
+        }
+        return (font.getStringWidth(text) / 1000f) * fontSize;
     }
 
     private String sanitize(String text) {

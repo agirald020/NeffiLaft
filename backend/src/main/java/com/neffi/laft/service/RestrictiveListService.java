@@ -34,11 +34,19 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class RestrictiveListService {
 
+    private static final String[] BULK_TEMPLATE_COLUMNS = {
+            "Número de Documento", "Primer Nombre", "Segundo Nombre",
+            "Primer Apellido", "Segundo Apellido"
+    };
+
     @Value("${app.restrictiveList.validationProcessName}")
     private String proceso;
 
     @Value("${app.restrictiveList.validationEventDescription}")
     private String descripcionEvento;
+
+    @Value("${app.restrictiveList.returnsLinf}")
+    private String retornaLinf;
 
     private final RestrictiveListRepository restrictiveListRepository;
 
@@ -65,7 +73,7 @@ public class RestrictiveListService {
                 dto.getP_APELLIDO_1(),
                 dto.getP_APELLIDO_2(),
                 proceso,
-                null,
+                retornaLinf,
                 utils.getCurrentUsername(),
                 requestUrl,
                 descripcionEvento);
@@ -75,7 +83,8 @@ public class RestrictiveListService {
         results.forEach(entry -> {
             if (entry.getTipoDocumento() != null) {
                 try {
-                    TiposDocumentosDTO tipoDoc = tiposDocumentosService.getTiposDocumentosById(Long.valueOf(entry.getTipoDocumento()));
+                    TiposDocumentosDTO tipoDoc = tiposDocumentosService
+                            .getTiposDocumentosById(Long.valueOf(entry.getTipoDocumento()));
                     entry.setTipoDocumento(tipoDoc.getCodHomologa());
                 } catch (Exception e) {
                     log.warn("No se pudo obtener el nombre del tipo de documento para código: {}",
@@ -96,6 +105,7 @@ public class RestrictiveListService {
                 Workbook workbook = new XSSFWorkbook(is)) {
 
             Sheet sheet = workbook.getSheetAt(0);
+            validateBulkTemplateColumnCount(sheet);
             int firstDataRow = 1;
 
             for (int i = firstDataRow; i <= sheet.getLastRowNum(); i++) {
@@ -108,29 +118,22 @@ public class RestrictiveListService {
                 String segundoNombre = getCellString(row, 2);
                 String primerApellido = getCellString(row, 3);
                 String segundoApellido = getCellString(row, 4);
-                String razonSocial = getCellString(row, 5);
 
                 String fullName;
-                if (!razonSocial.isBlank()) {
-                    fullName = razonSocial;
-                } else {
-                    fullName = String.join(" ",
-                            java.util.Arrays.stream(
-                                    new String[] { primerNombre, segundoNombre, primerApellido, segundoApellido })
-                                    .filter(s -> !s.isBlank())
-                                    .toArray(String[]::new));
-                }
 
-                if (docNumber.isBlank())
-                    continue;
+                fullName = String.join(" ",
+                        java.util.Arrays.stream(
+                                new String[] { primerNombre, segundoNombre, primerApellido, segundoApellido })
+                                .filter(s -> !s.isBlank())
+                                .toArray(String[]::new));
 
                 ValidateClientDto dto = ValidateClientDto.builder()
-                .p_IDENTIFICACION(docNumber)
-                .p_NOMBRE_1(primerNombre)
-                .p_NOMBRE_2(segundoNombre)
-                .p_APELLIDO_1(primerApellido)
-                .p_APELLIDO_2(segundoApellido)
-                .build();
+                        .p_IDENTIFICACION(docNumber)
+                        .p_NOMBRE_1(primerNombre)
+                        .p_NOMBRE_2(segundoNombre)
+                        .p_APELLIDO_1(primerApellido)
+                        .p_APELLIDO_2(segundoApellido)
+                        .build();
 
                 List<RestrictiveListEntry> matches = validateClient(dto, requestUrl);
 
@@ -144,9 +147,16 @@ public class RestrictiveListService {
         }
 
         log.info("Validación masiva completada - {} registros procesados", results.size());
+
         return results;
+
     }
 
+    /**
+     * Metodo para generar la plantilla de validación masiva en Excel.
+     * 
+     * @return
+     */
     public Workbook generateBulkTemplate() {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Plantilla");
@@ -159,10 +169,7 @@ public class RestrictiveListService {
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
 
         Row header = sheet.createRow(0);
-        String[] columns = {
-                "Número de Documento", "Primer Nombre", "Segundo Nombre",
-                "Primer Apellido", "Segundo Apellido", "Razón Social"
-        };
+        String[] columns = BULK_TEMPLATE_COLUMNS;
         for (int i = 0; i < columns.length; i++) {
             Cell cell = header.createCell(i);
             cell.setCellValue(columns[i]);
@@ -174,8 +181,32 @@ public class RestrictiveListService {
     }
 
     /**
+     * Metodo para validar que la plantilla de validación masiva tenga el número
+     * correcto de columnas.
+     * 
+     * @param sheet
+     */
+    private void validateBulkTemplateColumnCount(Sheet sheet) {
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            throw new IllegalArgumentException("El archivo no contiene fila de encabezados.");
+        }
+
+        int actualColumns = headerRow.getLastCellNum();
+        int expectedColumns = BULK_TEMPLATE_COLUMNS.length;
+
+        if (actualColumns != expectedColumns) {
+            throw new IllegalArgumentException(String.format(
+                    "La plantilla es inválida. Se esperaban %d columnas y se encontraron %d.",
+                    expectedColumns,
+                    actualColumns));
+        }
+    }
+
+    /**
      * Genera un Workbook Excel con los resultados de la validación masiva.
-     * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las coincidencias.
+     * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las
+     * coincidencias.
      * 
      * @param results Lista de resultados de validateBulk
      * @return Workbook Excel con los resultados
@@ -217,7 +248,7 @@ public class RestrictiveListService {
         return style;
     }
 
-    private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results, 
+    private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results,
             CellStyle headerStyle, CellStyle warningStyle) {
         // Headers
         Row headerRow = sheet.createRow(0);
@@ -233,7 +264,7 @@ public class RestrictiveListService {
         int rowNum = 1;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
-            
+
             Cell docCell = row.createCell(0);
             docCell.setCellValue(result.getQueryDocumentNumber());
 
@@ -257,7 +288,7 @@ public class RestrictiveListService {
             CellStyle headerStyle, CellStyle warningStyle) {
         // Headers
         Row headerRow = sheet.createRow(0);
-        String[] headers = { "Documento Consultado", "Nombre Consultado", "Código Lista", 
+        String[] headers = { "Documento Consultado", "Nombre Consultado", "Código Lista",
                 "Nombre (Lista)", "Tipo", "Identificación (Lista)", "Comentarios" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -271,14 +302,18 @@ public class RestrictiveListService {
         for (BulkValidateResultDto result : results) {
             for (RestrictiveListEntry match : result.getMatches()) {
                 Row row = sheet.createRow(rowNum++);
-                
-                row.createCell(0).setCellValue(result.getQueryDocumentNumber());
-                row.createCell(1).setCellValue(result.getQueryFullName());
-                row.createCell(2).setCellValue(match.getCodigoLista() != null ? match.getCodigoLista().toString() : "");
-                row.createCell(3).setCellValue(match.getNombre() != null ? match.getNombre() : "");
-                row.createCell(4).setCellValue(match.getTipo() != null ? match.getTipo() : "");
-                row.createCell(5).setCellValue(match.getIdentificacion() != null ? match.getIdentificacion() : "");
-                row.createCell(6).setCellValue(match.getComentarios() != null ? match.getComentarios() : "");
+
+                int colNum = 0;
+
+                row.createCell(colNum++).setCellValue(result.getQueryDocumentNumber());
+                row.createCell(colNum++).setCellValue(result.getQueryFullName());
+                row.createCell(colNum++)
+                        .setCellValue(match.getCodigoLista() != null ? match.getCodigoLista().toString() : "");
+                row.createCell(colNum++).setCellValue(match.getNombre() != null ? match.getNombre() : "");
+                row.createCell(colNum++).setCellValue(match.getTipo() != null ? match.getTipo() : "");
+                row.createCell(colNum++)
+                        .setCellValue(match.getIdentificacion() != null ? match.getIdentificacion() : "");
+                row.createCell(colNum++).setCellValue(match.getComentarios() != null ? match.getComentarios() : "");
             }
         }
 

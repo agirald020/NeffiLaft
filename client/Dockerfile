@@ -14,7 +14,7 @@ COPY postcss.config.cjs .
 
 # Copiamos el código fuente
 COPY client ./client
-COPY shared ./shared
+# COPY shared ./shared
 COPY attached_assets ./attached_assets
 
 # Ejecutamos build (usará vite.config.ts que apunta root a ./client)

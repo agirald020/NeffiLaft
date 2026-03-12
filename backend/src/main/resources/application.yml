@@ -41,6 +41,7 @@ app:
   restrictiveList:
     validationProcessName: ${APP_RESTRICTIVE_LIST_VALIDATION_PROCESS_NAME:VALIDACION_CLIENTE}
     validationEventDescription: ${APP_RESTRICTIVE_LIST_VALIDATION_EVENT_DESCRIPTION:Validación de cliente contra listas restrictivas}
+    returnsLinf: ${APP_RESTRICTIVE_LIST_RETURNS_LINF:SI}
 
 logging:
   level:
