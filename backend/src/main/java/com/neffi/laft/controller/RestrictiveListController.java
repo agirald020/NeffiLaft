@@ -24,7 +24,6 @@ import com.neffi.laft.dto.BulkValidateResultDto;
 import com.neffi.laft.dto.RestrictiveListEntry;
 import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
-import com.neffi.laft.dto.request.GenerateReportPdfRequest;
 import com.neffi.laft.service.PdfReportService;
 import com.neffi.laft.service.RestrictiveListService;
 import com.neffi.laft.service.TiposDocumentosService;

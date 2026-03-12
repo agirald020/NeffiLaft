@@ -1,6 +1,10 @@
 package com.neffi.laft.config;
 
-import lombok.RequiredArgsConstructor;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,11 +18,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
@@ -66,11 +66,14 @@ public class SecurityConfig {
         // Extract realm roles from Keycloak token
         Map<String, Object> realmAccess = jwt.getClaimAsMap("realm_access");
         if (realmAccess != null) {
-            List<String> roles = (List<String>) realmAccess.get("roles");
-            if (roles != null) {
-                authorities.addAll(roles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
-                    .collect(Collectors.toList()));
+            Object rolesObj = realmAccess.get("roles");
+            if (rolesObj instanceof List<?>) {
+                List<?> rawRoles = (List<?>) rolesObj;
+                for (Object role : rawRoles) {
+                    if (role instanceof String) {
+                        authorities.add(new SimpleGrantedAuthority("ROLE_" + ((String) role).toUpperCase()));
+                    }
+                }
             }
         }
 
@@ -79,11 +82,14 @@ public class SecurityConfig {
         if (resourceAccess != null) {
             resourceAccess.values().forEach(resource -> {
                 if (resource instanceof Map) {
-                    List<String> roles = (List<String>) ((Map<?, ?>) resource).get("roles");
-                    if (roles != null) {
-                        authorities.addAll(roles.stream()
-                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
-                            .collect(Collectors.toList()));
+                    Object rolesObj = ((Map<?, ?>) resource).get("roles");
+                    if (rolesObj instanceof List<?>) {
+                        List<?> rawRoles = (List<?>) rolesObj;
+                        for (Object role : rawRoles) {
+                            if (role instanceof String) {
+                                authorities.add(new SimpleGrantedAuthority("ROLE_" + ((String) role).toUpperCase()));
+                            }
+                        }
                     }
                 }
             });

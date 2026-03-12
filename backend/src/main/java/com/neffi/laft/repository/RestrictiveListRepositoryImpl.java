@@ -33,14 +33,14 @@ public class RestrictiveListRepositoryImpl implements RestrictiveListRepositoryC
     @Override
     public List<RestrictiveListEntry> butValidarListas(ButValidarListasParams params) {
         try (Connection connection = dataSource.getConnection()) {
-            
+
             // SQL para llamar la función: { ? = call BUT_VALIDAR_LISTAS(...) }
             String sql = "{ ? = call BUT_VALIDAR_LISTAS(?, ?, ?, ?, ?, ?, ?, ?, ?, ?) }";
-            
+
             try (CallableStatement cs = connection.prepareCall(sql)) {
                 // Registrar el parámetro de retorno como REF CURSOR
                 cs.registerOutParameter(1, OracleTypes.CURSOR);
-                
+
                 // Establecer parámetros de entrada (posiciones 2-11)
                 cs.setString(2, params.getIdentificacion());
                 cs.setString(3, params.getNombre1());
@@ -52,44 +52,42 @@ public class RestrictiveListRepositoryImpl implements RestrictiveListRepositoryC
                 cs.setString(9, params.getUsuario());
                 cs.setString(10, params.getTerminal());
                 cs.setString(11, params.getDescripcionEvento());
-                
+
                 // Ejecutar
                 cs.execute();
-                
-                // Obtener el cursor (posición 1)
-                ResultSet resultSet = (ResultSet) cs.getObject(1);
-                
-                // Procesar el ResultSet
+
+                // Obtener el cursor (posición 1) y procesar con try-with-resources
                 List<RestrictiveListEntry> results = new ArrayList<>();
-                if (resultSet != null) {
-                    while (resultSet.next()) {
-                        try {
-                            RestrictiveListEntry entry = RestrictiveListEntry.builder()
-                                .codigoLista(resultSet.getLong("CODIGO_LISTA"))
-                                .nombre(resultSet.getString("NOMBRE"))
-                                .tipo(resultSet.getString("TIPO"))
-                                .prioridadValidacion(resultSet.getLong("PRIORIDAD_VALIDACION"))
-                                .permiteIdentificacion(resultSet.getString("PERMITE_IDENTIFICACION"))
-                                .permiteHomonimia(resultSet.getString("PERMITE_HOMONIMIA"))
-                                .tipoDocumento(resultSet.getString("TIPO_DOCUMENTO"))
-                                .identificacion(resultSet.getString("IDENTIFICACION"))
-                                .sdnName(resultSet.getString("SDN_NAME"))
-                                .usuario(resultSet.getString("USUARIO"))
-                                .fechaActualizacion(resultSet.getObject("FECHA_ACTUALIZACION", LocalDateTime.class))
-                                .comentarios(resultSet.getString("COMENTARIOS"))
-                                .comentarios2(resultSet.getString("COMENTARIOS2"))
-                                .entNum(resultSet.getLong("ENT_NUM"))
-                                .tipoLista(resultSet.getString("TIPO_LISTA"))
-                                .descriTipoLista(resultSet.getString("DESCRI_TIPO_LISTA"))
-                                .build();
-                            
-                            results.add(entry);
-                        } catch (SQLException e) {
-                            log.warn("Error procesando fila del resultado", e);
+                try (ResultSet resultSet = (ResultSet) cs.getObject(1)) {
+                    if (resultSet != null) {
+                        while (resultSet.next()) {
+                            try {
+                                RestrictiveListEntry entry = RestrictiveListEntry.builder()
+                                        .codigoLista(resultSet.getLong("CODIGO_LISTA"))
+                                        .nombre(resultSet.getString("NOMBRE"))
+                                        .tipo(resultSet.getString("TIPO"))
+                                        .prioridadValidacion(resultSet.getLong("PRIORIDAD_VALIDACION"))
+                                        .permiteIdentificacion(resultSet.getString("PERMITE_IDENTIFICACION"))
+                                        .permiteHomonimia(resultSet.getString("PERMITE_HOMONIMIA"))
+                                        .tipoDocumento(resultSet.getString("TIPO_DOCUMENTO"))
+                                        .identificacion(resultSet.getString("IDENTIFICACION"))
+                                        .sdnName(resultSet.getString("SDN_NAME"))
+                                        .usuario(resultSet.getString("USUARIO"))
+                                        .fechaActualizacion(
+                                                resultSet.getObject("FECHA_ACTUALIZACION", LocalDateTime.class))
+                                        .comentarios(resultSet.getString("COMENTARIOS"))
+                                        .comentarios2(resultSet.getString("COMENTARIOS2"))
+                                        .entNum(resultSet.getLong("ENT_NUM"))
+                                        .tipoLista(resultSet.getString("TIPO_LISTA"))
+                                        .descriTipoLista(resultSet.getString("DESCRI_TIPO_LISTA"))
+                                        .build();
+                                results.add(entry);
+                            } catch (SQLException e) {
+                                log.warn("Error procesando fila del resultado", e);
+                            }
                         }
                     }
                 }
-                
                 return results;
             }
         } catch (SQLException e) {

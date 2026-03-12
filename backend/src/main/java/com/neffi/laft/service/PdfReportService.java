@@ -26,7 +26,7 @@ public class PdfReportService {
     private static final float CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    private static final String[] TABLE_HEADERS = { "Documento", "Nombre", "Lista", "Fuente", "Coincidencia" };
+    private static final String[] TABLE_HEADERS = { "Documento", "Nombre", "Lista", "Coincidencia", "Fuente" };
     private static final float[] COL_WIDTHS = { 90, 140, 100, 80, 80 };
     private static final float ROW_HEIGHT = 18;
     private static final float TABLE_FONT_SIZE = 8f;
@@ -210,8 +210,8 @@ public class PdfReportService {
                 sanitize(match.getIdentificacion()),
                 sanitize(match.getSdnName()),
                 sanitize(match.getNombre()),
-                sanitize(match.getComentarios2()),
-                sanitize(match.getTipo())
+                sanitize(match.getTipo()),
+                sanitize(match.getComentarios2())
             };
 
             List<List<String>> wrappedValues = new ArrayList<>();
@@ -353,11 +353,5 @@ public class PdfReportService {
         if (text == null)
             return "";
         return text.replaceAll("[\\p{Cntrl}&&[^\t]]", "").replace("\t", " ");
-    }
-
-    private String truncate(String text, int maxLen) {
-        if (text == null)
-            return "";
-        return text.length() > maxLen ? text.substring(0, maxLen - 2) + ".." : text;
     }
 }
