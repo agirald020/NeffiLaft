@@ -20,6 +20,14 @@ FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
+# Set container timezone to Colombia
+ENV TZ=America/Bogota
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends tzdata \
+	&& ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+	&& echo $TZ > /etc/timezone \
+	&& rm -rf /var/lib/apt/lists/*
+
 # Copy JAR from builder
 COPY --from=builder /app/target/*.jar app.jar
 

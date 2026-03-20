@@ -22,6 +22,9 @@ public class AuthController {
     @Value("${app.bypass-auth:false}")
     private boolean bypassAuth;
 
+    @Value("${keycloak.auth-server-url}")
+    private String keycloakUrl;
+
     //Se usa
     @GetMapping("/user")
     public ResponseEntity<Map<String, Object>> getCurrentUser(@AuthenticationPrincipal Jwt jwt) {
@@ -49,9 +52,9 @@ public class AuthController {
     @GetMapping("/keycloak-config")
     public Map<String, Object> getKeycloakConfig() {
         return Map.of(
-                "url", "http://192.168.2.10:8080",
+                "url", keycloakUrl,
                 "realm", "neffiLaft",
                 "clientId", "neffiLaft-app",
-                "bypassActive", false);
+                "bypassActive", bypassAuth);
     }
 }
