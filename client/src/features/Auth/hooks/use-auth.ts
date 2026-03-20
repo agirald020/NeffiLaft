@@ -1,16 +1,8 @@
 import { createContext, useContext } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { User } from "../types/User";
+import { AuthContextType } from "../types/AuthContext";
 
-
-export interface AuthContextType {
-  user: User | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: () => void;
-  logout: () => void;
-  error: Error | null;
-}
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
 

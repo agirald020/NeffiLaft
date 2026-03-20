@@ -1,6 +1,5 @@
 import { FunctionComponent } from "react";
 import { Card, CardContent } from "@/shared/ui/card";
-import { AlertCircle } from "lucide-react";
 interface HomePageProps {
 
 }
