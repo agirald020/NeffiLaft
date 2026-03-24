@@ -24,6 +24,7 @@ import com.neffi.laft.dto.ButValidarListasParams;
 import com.neffi.laft.dto.RestrictiveListEntry;
 import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
+import com.neffi.laft.enums.BulkTemplateColumn;
 import com.neffi.laft.repository.RestrictiveListRepository;
 import com.neffi.laft.utils.Utils;
 
@@ -37,10 +38,7 @@ public class RestrictiveListService {
 
     private static final DateTimeFormatter REPORT_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
 
-    private static final String[] BULK_TEMPLATE_COLUMNS = {
-            "Número de Documento", "Primer Nombre", "Segundo Nombre",
-            "Primer Apellido", "Segundo Apellido"
-    };
+    private static final String[] BULK_TEMPLATE_COLUMNS = BulkTemplateColumn.headers();
 
     @Value("${app.restrictiveList.validationProcessName}")
     private String proceso;
@@ -116,11 +114,26 @@ public class RestrictiveListService {
                 if (row == null)
                     continue;
 
-                String docNumber = getCellString(row, 0);
-                String primerNombre = getCellString(row, 1);
-                String segundoNombre = getCellString(row, 2);
-                String primerApellido = getCellString(row, 3);
-                String segundoApellido = getCellString(row, 4);
+                String docNumber = getCellString(row, BulkTemplateColumn.NUMERO_DOCUMENTO);
+                String primerNombreCol = getCellString(row, BulkTemplateColumn.PRIMER_NOMBRE);
+                String razonSocialCol = getCellString(row, BulkTemplateColumn.RAZON_SOCIAL);
+                String primerNombre;
+
+                if (!primerNombreCol.isBlank()) {
+                    log.info("Fila {}: Usando Primer Nombre '{}' para documento {}", i + 1, primerNombreCol, docNumber);
+                    primerNombre = primerNombreCol;
+                } else if (!razonSocialCol.isBlank()) {
+                    log.info("Fila {}: Usando Razón Social '{}' para documento {}", i + 1, razonSocialCol, docNumber);
+                    primerNombre = razonSocialCol;
+                } 
+                else {
+                    log.warn("Fila {}: No se proporcionó ni Primer Nombre ni Razón Social. Se omite esta fila.", i + 1);
+                    primerNombre = "";
+                }
+
+                String segundoNombre = getCellString(row, BulkTemplateColumn.SEGUNDO_NOMBRE);
+                String primerApellido = getCellString(row, BulkTemplateColumn.PRIMER_APELLIDO);
+                String segundoApellido = getCellString(row, BulkTemplateColumn.SEGUNDO_APELLIDO);
 
                 String fullName;
 
@@ -224,7 +237,6 @@ public class RestrictiveListService {
         // Crear hoja de Resumen
         Sheet summarySheet = workbook.createSheet("Resumen");
         createSummarySheet(summarySheet, results, headerStyle);
-
 
         // Crear hoja de Detalles
         Sheet detailsSheet = workbook.createSheet("Detalles");
@@ -338,6 +350,10 @@ public class RestrictiveListService {
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
+    }
+
+    private String getCellString(Row row, BulkTemplateColumn column) {
+        return getCellString(row, column.index());
     }
 
     private String getCellString(Row row, int col) {

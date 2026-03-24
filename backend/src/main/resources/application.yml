@@ -30,6 +30,7 @@ keycloak:
   client-id: ${KEYCLOAK_CLIENT_ID:neffiLaft-app}
 
 app:
+  neffi-trust-url: ${APP_NEFFI_TRUST_URL:http://192.168.2.10:5050}
   bypass-auth: ${AUTH_BYPASS:false}
   cors:
     allowed-origins:
