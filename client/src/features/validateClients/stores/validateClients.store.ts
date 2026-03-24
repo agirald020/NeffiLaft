@@ -3,10 +3,11 @@ import { create } from "zustand";
 import { BulkResult, RestrictiveListMatch } from "../types/validateClients.types";
 
 type PersonType = "natural" | "juridica";
-
+type DocumentType = "CC" | "NIT"
 interface ValidationState {
 	// ----- Individual -----
 	documentNumber: string;
+	documentType: DocumentType;
 	personType: PersonType;
 	firstName: string;
 	secondName: string;
@@ -25,12 +26,14 @@ interface ValidationState {
 	searchContext: {
 		type: "individual" | "bulk";
 		documentNumber?: string;
+		documentType?: DocumentType;
 		fullName?: string;
 	} | null;
 
 	// ----- Actions -----
 	setDocumentNumber: (value: string) => void;
 	setPersonType: (type: PersonType) => void;
+	setDocumentType: (value: DocumentType) => void;
 	setFirstName: (value: string) => void;
 	setSecondName: (value: string) => void;
 	setFirstLastName: (value: string) => void;
@@ -46,6 +49,7 @@ interface ValidationState {
 	setSearchContext: (ctx: {
 		type: "individual" | "bulk";
 		documentNumber?: string;
+		documentType?: DocumentType;
 		fullName?: string;
 	} | null) => void;
 
@@ -58,6 +62,7 @@ export const useValidationStore = create<ValidationState>((set) => ({
 	// ----- Initial State -----
 	documentNumber: "",
 	personType: "natural",
+	documentType: "CC",
 	firstName: "",
 	secondName: "",
 	firstLastName: "",
@@ -73,6 +78,7 @@ export const useValidationStore = create<ValidationState>((set) => ({
 
 	// ----- Setters -----
 	setDocumentNumber: (value) => set({ documentNumber: value }),
+	setDocumentType: (value) => set({documentType: value}), 
 	setPersonType: (type) => set({ personType: type }),
 	setFirstName: (value) => set({ firstName: value }),
 	setSecondName: (value) => set({ secondName: value }),

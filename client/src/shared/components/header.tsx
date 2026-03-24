@@ -33,11 +33,6 @@ export default function Header() {
       });
   }, [trustUrl]);
 
-  useEffect(()=>{
-    console.log("trustUrl:", trustUrl);
-    console.log(apps)
-  }, [apps])
-
   const showAppsMenu = apps.some(app => app.href !== "/");
 
   return (
@@ -81,7 +76,6 @@ export default function Header() {
                       <a
                         href={app.href}
                         className="flex items-center gap-3 px-3 py-3 w-full"
-                        onClick={()=>{console.log(app.href)}}
                       >
                         <div className={`w-9 h-9 ${app.bg} rounded-lg flex items-center justify-center`}>
                           <app.icon className={`w-4 h-4 ${app.color}`} />

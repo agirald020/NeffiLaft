@@ -174,16 +174,21 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   // download PDF same behavior as before
   const handleDownloadPdf = () => {
     setDownloadingPdf(true);
+    let data: RestrictiveListMatch [] = []  
     if (!results || results.length === 0) {
-      toast({
-        title: "Sin datos",
-        description: "No hay resultados para generar el informe.",
-        variant: "destructive",
-      });
-      return;
+      data = [{
+        identificacion: searchContext?.documentNumber,
+        sdnName: searchContext?.fullName,
+        tipoDocumento: searchContext?.documentType,
+        codigoLista: 0,
+        entNum: 0,
+        nombre: "",
+        prioridadValidacion: 0
+      }]
     }
-
-    pdfMutation.mutate(results, {
+    console.log("results", results)
+    console.log("data", data)
+    pdfMutation.mutate((results && results.length > 0) ? results : data, {
       onSuccess: (blob) => {
 
         const url = URL.createObjectURL(blob);

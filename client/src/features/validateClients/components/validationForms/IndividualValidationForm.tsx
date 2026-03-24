@@ -27,10 +27,12 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
   const firstLastName = useValidationStore(s => s.firstLastName);
   const secondLastName = useValidationStore(s => s.secondLastName);
   const documentNumber = useValidationStore(s => s.documentNumber);
+  const documentType = useValidationStore(s => s.documentType);
   const personType = useValidationStore(s => s.personType);
 
   // setters
   const setDocumentNumber = useValidationStore(s => s.setDocumentNumber);
+  const setDocumentType = useValidationStore(s => s.setDocumentType);
   const setPersonType = useValidationStore(s => s.setPersonType);
   const setCompanyName = useValidationStore(s => s.setCompanyName);
   const setFirstName = useValidationStore(s => s.setFirstName);
@@ -96,11 +98,13 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
 
   const handleNaturalPerson = () => {
     setPersonType("natural");
+    setDocumentType("CC");
     clearJuridicalFields();
   };
 
   const handleJuridicalPerson = () => {
     setPersonType("juridica");
+    setDocumentType("NIT");
     clearNaturalFields();
   };
 
@@ -160,6 +164,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
         setSearchContext({
           type: "individual",
           documentNumber: doc,
+          documentType: documentType,
           fullName: fullName,
         });
         showResultToast(data.length);
