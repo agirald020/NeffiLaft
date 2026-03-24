@@ -9,10 +9,36 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from "@/shared/ui/dropdown-menu";
-import { AppsItems } from "./AppsItems";
+import { useNeffiTrustUrl } from "../data/redirect/hooks/use-redirect";
+import { useEffect, useMemo } from "react";
+import { AppsItems } from "../data/redirect/AppsItems";
+import { hasPermission } from "../lib/permissions";
 
 export default function Header() {
   const { user, logout } = useAuth();
+
+  const { data: trustUrl } = useNeffiTrustUrl();
+
+  const apps = useMemo(() => {
+    return AppsItems
+      .filter((app) => !app.permission || hasPermission(app.permission)) // 👈 filtro
+      .map((app) => {
+        if (app.name === "Neffi Trust") {
+          return {
+            ...app,
+            href: trustUrl || "#",
+          };
+        }
+        return app;
+      });
+  }, [trustUrl]);
+
+  useEffect(()=>{
+    console.log("trustUrl:", trustUrl);
+    console.log(apps)
+  }, [apps])
+
+  const showAppsMenu = apps.some(app => app.href !== "/");
 
   return (
     <header className="bg-red-700 shadow-sm">
@@ -25,51 +51,56 @@ export default function Header() {
             <div className="w-8 h-8 bg-white rounded flex items-center justify-center">
               <span className="text-red-600 font-bold">N</span>
             </div>
+
             {/* Selector de módulos */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className="text-white hover:text-red-100"
-                  data-testid="button-module-selector"
-                >
-                  <LayoutGrid className="w-5 h-5" />
-                </button>
-              </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="start" className="w-72 p-2">
-                <DropdownMenuLabel className="text-xs uppercase tracking-wider text-gray-500 font-semibold px-2 pb-2">
-                  Módulos Neffi SSO
-                </DropdownMenuLabel>
-
-                <DropdownMenuSeparator />
-
-                {AppsItems.map((app) => (
-                  <DropdownMenuItem
-                    key={app.name}
-                    asChild
-                    className="cursor-pointer rounded-lg p-0"
+            {showAppsMenu && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    className="text-white hover:text-red-100"
+                    data-testid="button-module-selector"
                   >
-                    <a
-                      href={app.href}
-                      className="flex items-center gap-3 px-3 py-3 w-full"
-                    >
-                      <div className={`w-9 h-9 ${app.bg} rounded-lg flex items-center justify-center`}>
-                        <app.icon className={`w-4 h-4 ${app.color}`} />
-                      </div>
+                    <LayoutGrid className="w-5 h-5" />
+                  </button>
+                </DropdownMenuTrigger>
 
-                      <div>
-                        <p className="text-sm font-medium text-gray-900">
-                          {app.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {app.description}
-                        </p>
-                      </div>
-                    </a>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                <DropdownMenuContent align="start" className="w-72 p-2">
+                  <DropdownMenuLabel className="text-xs uppercase tracking-wider text-gray-500 font-semibold px-2 pb-2">
+                    Módulos Neffi SSO
+                  </DropdownMenuLabel>
+
+                  <DropdownMenuSeparator />
+
+                  {apps.map((app) => (
+                    <DropdownMenuItem
+                      key={app.name}
+                      asChild
+                      className="cursor-pointer rounded-lg p-0"
+                    >
+                      <a
+                        href={app.href}
+                        className="flex items-center gap-3 px-3 py-3 w-full"
+                        onClick={()=>{console.log(app.href)}}
+                      >
+                        <div className={`w-9 h-9 ${app.bg} rounded-lg flex items-center justify-center`}>
+                          <app.icon className={`w-4 h-4 ${app.color}`} />
+                        </div>
+
+                        <div>
+                          <p className="text-sm font-medium text-gray-900">
+                            {app.name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {app.description}
+                          </p>
+                        </div>
+                      </a>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
             {/* Nombre app */}
             <div className="leading-tight">
               <p

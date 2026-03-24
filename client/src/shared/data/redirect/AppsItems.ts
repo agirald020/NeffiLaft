@@ -1,18 +1,20 @@
 import { Landmark, Shield } from "lucide-react";
+import { AppItem } from "./types/redirect.types";
 
-export const AppsItems = [
+export const AppsItems: AppItem[] = [
   {
     name: "Neffi Trust",
     description: "Sistema de Gestión Fiduciaria",
-    href: "http://localhost:5050/",
+    href: "",
     icon: Landmark,
     color: "text-gray-700",
     bg: "bg-gray-100",
+    permission: "laft:NeffiTrust",
   },
   {
     name: "Neffi Laft",
     description: "Validación en Listas Restrictivas",
-    href: "http://localhost:5010/",
+    href: "/",
     icon: Shield,
     color: "text-red-600",
     bg: "bg-red-50",
