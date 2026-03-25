@@ -64,9 +64,10 @@
   background-repeat: no-repeat;
   background-position: center;
   background-size: contain;
-
   height: 80px;
   margin-bottom: 10px;
+  
+  content-visibility: hidden; /*Ocultar el neffilaft que aparece solo en el cliente*/
 }
 
 /* QUITADO: .kc-logo-text::after { content: "Autenticación"; }  */
