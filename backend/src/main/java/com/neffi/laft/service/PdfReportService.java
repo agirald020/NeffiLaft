@@ -8,10 +8,12 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -25,6 +27,19 @@ public class PdfReportService {
     private static final float PAGE_WIDTH = PDRectangle.LETTER.getWidth();
     private static final float CONTENT_WIDTH = PAGE_WIDTH - 2 * MARGIN;
     private static final DateTimeFormatter DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private static final String LOGO_RESOURCE_PATH = "static/img/logo-af.png";
+    private static final float LOGO_WIDTH = 96f;
+    private static final float LOGO_HEIGHT = 39f;
+    private static final float LOGO_TOP_OFFSET = 1f;
+    private static final float HEADER_TOP_RAISE = 10f;
+    private static final float HEADER_TEXT_X = MARGIN;
+    private static final float HEADER_LOGO_X = PAGE_WIDTH - MARGIN - LOGO_WIDTH;
+    private static final String REPORT_TITLE = "NEFFI LAFT";
+    private static final String REPORT_SUBTITLE = "Informe de Validacion en Listas Restrictivas";
+    private static final float HEADER_TITLE_FONT_SIZE = 18f;
+    private static final float HEADER_SUBTITLE_FONT_SIZE = 10.5f;
+    private static final float HEADER_SUBTITLE_GAP = 19f;
+    private static final float HEADER_BOTTOM_PADDING = 16f;
 
     private static final String[] TABLE_HEADERS = { "Documento", "Nombre", "Lista", "Coincidencia", "Fuente" };
     private static final float[] COL_WIDTHS = { 90, 140, 100, 80, 80 };
@@ -45,7 +60,7 @@ public class PdfReportService {
             ContentStreamHolder holder = new ContentStreamHolder(new PDPageContentStream(document, page));
             float y = page.getMediaBox().getHeight() - MARGIN;
 
-            y = drawHeader(holder.cs, y);
+            y = drawHeader(document, holder.cs, y);
             y = drawSeparator(holder.cs, y);
             y = drawValidationInfo(holder.cs, y, documentNumber, personType, fullName, userName);
             y = drawSeparator(holder.cs, y);
@@ -67,22 +82,54 @@ public class PdfReportService {
         }
     }
 
-    private float drawHeader(PDPageContentStream cs, float y) throws IOException {
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA_BOLD, 18);
-        cs.newLineAtOffset(MARGIN, y);
-        cs.showText("NEFFI LAFT");
-        cs.endText();
-        y -= 20;
+    private float drawHeader(PDDocument document, PDPageContentStream cs, float y) throws IOException {
+        float headerTopY = y + HEADER_TOP_RAISE;
+        float logoTopY = headerTopY - LOGO_TOP_OFFSET;
+        float logoBottomY = logoTopY - LOGO_HEIGHT;
+        float logoCenterY = logoTopY - (LOGO_HEIGHT / 2f);
+        float titleY = logoCenterY;
+        float subtitleY = titleY - HEADER_SUBTITLE_GAP;
 
-        cs.beginText();
-        cs.setFont(PDType1Font.HELVETICA, 10);
-        cs.newLineAtOffset(MARGIN, y);
-        cs.showText("Informe de Validacion en Listas Restrictivas");
-        cs.endText();
-        y -= 25;
+        drawLogo(document, cs, headerTopY);
+        drawText(cs, REPORT_TITLE, PDType1Font.HELVETICA_BOLD, HEADER_TITLE_FONT_SIZE, HEADER_TEXT_X, titleY);
+        drawText(cs, REPORT_SUBTITLE, PDType1Font.HELVETICA, HEADER_SUBTITLE_FONT_SIZE, HEADER_TEXT_X, subtitleY);
 
-        return y;
+        float subtitleBottomY = subtitleY - HEADER_SUBTITLE_FONT_SIZE;
+
+        return Math.min(logoBottomY, subtitleBottomY) - HEADER_BOTTOM_PADDING;
+    }
+
+    private void drawText(PDPageContentStream cs, String text, PDFont font, float fontSize, float x, float y)
+            throws IOException {
+        cs.beginText();
+        cs.setFont(font, fontSize);
+        cs.newLineAtOffset(x, y);
+        cs.showText(text);
+        cs.endText();
+    }
+
+    private void drawLogo(PDDocument document, PDPageContentStream cs, float topY) throws IOException {
+        PDImageXObject logoImage = createLogoImage(document);
+        if (logoImage == null) {
+            return;
+        }
+
+        float logoY = topY - LOGO_HEIGHT - LOGO_TOP_OFFSET;
+        cs.drawImage(logoImage, HEADER_LOGO_X, logoY, LOGO_WIDTH, LOGO_HEIGHT);
+    }
+
+    private PDImageXObject createLogoImage(PDDocument document) {
+        try (InputStream logoInput = getClass().getClassLoader().getResourceAsStream(LOGO_RESOURCE_PATH)) {
+            if (logoInput == null) {
+                log.warn("No se encontró el logo PNG en classpath: {}", LOGO_RESOURCE_PATH);
+                return null;
+            }
+
+            return PDImageXObject.createFromByteArray(document, logoInput.readAllBytes(), "logo-af");
+        } catch (IOException e) {
+            log.warn("No se pudo cargar el logo para el reporte PDF", e);
+            return null;
+        }
     }
 
     private float drawSeparator(PDPageContentStream cs, float y) throws IOException {
@@ -135,8 +182,7 @@ public class PdfReportService {
     private float drawResultSection(ContentStreamHolder holder, float y,
             List<RestrictiveListEntry> matches,
             PDDocument document) throws IOException {
-        boolean hasMatches = matches != null && !matches.isEmpty();
-
+        
         holder.cs.beginText();
         holder.cs.setFont(PDType1Font.HELVETICA_BOLD, 12);
         holder.cs.newLineAtOffset(MARGIN, y);
@@ -144,7 +190,7 @@ public class PdfReportService {
         holder.cs.endText();
         y -= 20;
 
-        if (hasMatches) {
+        if (validarCoincidencias(matches)) {
             holder.cs.setNonStrokingColor(220 / 255f, 38 / 255f, 38 / 255f);
             holder.cs.beginText();
             holder.cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
@@ -181,6 +227,22 @@ public class PdfReportService {
         }
 
         return y;
+    }
+
+    private boolean validarCoincidencias(List<RestrictiveListEntry> matches) {
+        if (matches == null || matches.isEmpty()) {
+            return false;
+        }
+        for (RestrictiveListEntry match : matches) {
+            if (!"0".equalsIgnoreCase(match.getCodigoLista().toString()) &&
+                    match.getPermiteHomonimia() != null &&
+                    match.getPermiteIdentificacion() != null &&
+                    match.getTipo() != null &&
+                    match.getTipoLista() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private float drawTableHeaders(PDPageContentStream cs, float y) throws IOException {
