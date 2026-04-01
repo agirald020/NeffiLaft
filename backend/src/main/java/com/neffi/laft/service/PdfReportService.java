@@ -1,7 +1,13 @@
 package com.neffi.laft.service;
 
-import com.neffi.laft.dto.RestrictiveListEntry;
-import lombok.extern.slf4j.Slf4j;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
@@ -11,13 +17,9 @@ import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import com.neffi.laft.dto.RestrictiveListEntry;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -213,7 +215,7 @@ public class PdfReportService {
             holder.cs.beginText();
             holder.cs.setFont(PDType1Font.HELVETICA_BOLD, 11);
             holder.cs.newLineAtOffset(MARGIN, y);
-            holder.cs.showText("Sin coincidencias en listas restrictivas");
+            holder.cs.showText(validarResultadosInformativos(matches) ? "Se encontraron " + matches.size() + " coincidencia(s) en listas informativas" : "Sin coincidencias en listas restrictivas");
             holder.cs.endText();
             y -= 18;
 
@@ -223,10 +225,28 @@ public class PdfReportService {
             holder.cs.showText("Permite Vinculacion: SI");
             holder.cs.endText();
             holder.cs.setNonStrokingColor(0f, 0f, 0f);
+
             y -= 20;
+
+            if(validarResultadosInformativos(matches)) {
+                y = drawMatchesTable(holder, y, matches, document);
+                y -= 5;
+            }
         }
 
         return y;
+    }
+
+    private boolean validarResultadosInformativos(List<RestrictiveListEntry> matches) {
+        if (matches == null || matches.isEmpty()) {
+            return false;
+        }
+        for (RestrictiveListEntry match : matches) {
+            if ("INF".equals(match.getTipoLista())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean validarCoincidencias(List<RestrictiveListEntry> matches) {
