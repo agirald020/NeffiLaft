@@ -1,13 +1,16 @@
 package com.neffi.laft.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
+@Builder
 @AllArgsConstructor
 public class ValidateClientDto {
-    private String documentNumber;
-    private String fullName;
+    private String p_IDENTIFICACION;
+    private String p_NOMBRE_1;
+    private String p_NOMBRE_2;
+    private String p_APELLIDO_1;
+    private String p_APELLIDO_2;
 }

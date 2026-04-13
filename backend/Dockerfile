@@ -1,0 +1,38 @@
+# Build stage
+FROM maven:3.9.0-eclipse-temurin-17 AS builder
+
+WORKDIR /app
+
+# Copy pom.xml
+COPY pom.xml .
+
+# Download dependencies
+RUN mvn dependency:go-offline -B
+
+# Copy source code
+COPY src ./src
+
+# Build application
+RUN mvn clean package -DskipTests
+
+# Runtime stage
+FROM eclipse-temurin:17-jre-jammy
+
+WORKDIR /app
+
+# Set container timezone to Colombia
+ENV TZ=America/Bogota
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends tzdata \
+	&& ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
+	&& echo $TZ > /etc/timezone \
+	&& rm -rf /var/lib/apt/lists/*
+
+# Copy JAR from builder
+COPY --from=builder /app/target/*.jar app.jar
+
+# Expose port (default Spring Boot port)
+EXPOSE 8091
+
+# Run the application
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

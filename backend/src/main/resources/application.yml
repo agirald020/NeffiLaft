@@ -5,19 +5,32 @@ spring:
   application:
     name: neffi-laft
 
+  datasource:
+    url: jdbc:oracle:thin:@//${DB_HOST:172.25.8.9}:${DB_PORT:1521}/${DB_SCHEMA:ACBTEST}
+    username: ${DB_USERNAME:ACCION}
+    password: ${DB_PASSWORD:ACBTEST}
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.OracleDialect
+
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}
-          jwk-set-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:Ideea}/protocol/openid-connect/certs
+          issuer-uri: ${KEYCLOAK_URL:http://192.168.2.10:8080}/realms/${KEYCLOAK_REALM:neffiLaft}
+          jwk-set-uri: ${KEYCLOAK_URL:http://192.168.2.10:8080}/realms/${KEYCLOAK_REALM:neffiLaft}/protocol/openid-connect/certs
 
 keycloak:
-  realm: ${KEYCLOAK_REALM:Ideea}
-  auth-server-url: ${KEYCLOAK_URL:http://localhost:8080}
-  client-id: ${KEYCLOAK_CLIENT_ID:neffi-trust-dev}
+  realm: ${KEYCLOAK_REALM:neffiLaft}
+  auth-server-url: ${KEYCLOAK_URL:http://192.168.2.10:8080}
+  client-id: ${KEYCLOAK_CLIENT_ID:neffiLaft-app}
 
 app:
+  neffi-trust-url: ${APP_NEFFI_TRUST_URL:http://192.168.2.10:5050}
   bypass-auth: ${AUTH_BYPASS:false}
   cors:
     allowed-origins:
@@ -26,6 +39,10 @@ app:
       - "http://localhost:5173"
       - "https://*.replit.dev"
       - "https://*.replit.app"
+  restrictiveList:
+    validationProcessName: ${APP_RESTRICTIVE_LIST_VALIDATION_PROCESS_NAME:VALIDACION_CLIENTE}
+    validationEventDescription: ${APP_RESTRICTIVE_LIST_VALIDATION_EVENT_DESCRIPTION:Validación de cliente contra listas restrictivas}
+    returnsLinf: ${APP_RESTRICTIVE_LIST_RETURNS_LINF:SI}
 
 logging:
   level:

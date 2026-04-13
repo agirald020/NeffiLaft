@@ -11,3 +11,5 @@ vite.config.ts.*
 target/
 *.class
 bin/
+backend/target
+.vscode/settings.json

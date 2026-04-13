@@ -1,0 +1,111 @@
+/* 1. Fondo con imagen */
+.login-pf body {
+  background-image: url('../img/background.png');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* 2. Tarjeta del login */
+.pf-c-login__main {
+  background-color: #ffffff !important;
+}
+
+.pf-c-login__main-header,
+.pf-c-login__main-body,
+.pf-c-login__main-footer {
+  background-color: #ffffff !important;
+}
+
+/* 3. Botón principal rojo */
+.pf-c-button.pf-m-primary {
+  background-color: #C62828 !important;
+  border-color: #C62828 !important;
+}
+
+.pf-c-button.pf-m-primary:hover {
+  background-color: #a61f1f !important;
+}
+
+/* 4. Color del texto */
+.pf-c-form__label-text {
+  color: #374151 !important;
+}
+
+/* 5. Inputs */
+.pf-c-form-control {
+  background-color: #F4F6F8 !important;
+  border-color: #d1d5db !important;
+}
+
+/* 6. Título dentro de la tarjeta (proviene de messages_es.properties) */
+.pf-c-login__main-header h1 {
+  color: #374151 !important;
+  font-weight: 700 !important;
+  font-size: 1.8rem !important;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+/* 7. Logo superior: NEFFI SSO (solo texto) */
+
+/* ocultar texto original */
+.kc-logo-text span {
+  display: none;
+}
+
+/* logo */
+#kc-header-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-image: url('../img/logo-af.svg');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  height: 80px;
+  margin-bottom: 10px;
+  
+  content-visibility: hidden; /*Ocultar el neffilaft que aparece solo en el cliente*/
+}
+
+/* QUITADO: .kc-logo-text::after { content: "Autenticación"; }  */
+/* no queremos el subtítulo arriba porque ya lo renderiza Keycloak dentro del card */
+
+/* centrar contenedor */
+.kc-logo,
+.kc-logo-text {
+  text-align: center;
+  width: 100%;
+}
+
+/* ocultar imagen del logo si la hubiera */
+.kc-logo img {
+  display: none;
+}
+
+/* 8. Tarjeta del login */
+.card-pf {
+  max-width: 420px;
+  margin-inline: auto;
+  border-radius: 5px;
+  padding: 32px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(8px);
+  box-shadow:
+    0 16px 32px rgba(0, 0, 0, 0.24),
+    0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* responsive */
+@media (max-width: 480px) {
+  .kc-logo-text::before {
+    font-size: 20px;
+  }
+
+  .pf-c-login__main-header h1 {
+    font-size: 15px;
+    font-weight: 600;
+  }
+}

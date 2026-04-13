@@ -1,0 +1,36 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image:  "422689199069.dkr.ecr.us-east-2.amazonaws.com/neffilaft_back:latest"
+    ports:
+      - "8091:8091"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SERVER_PORT=8091
+      - JAVA_OPTS=-Duser.timezone=UTC
+    container_name: neffi-backend
+    networks:
+      - neffi-network
+
+  frontend:
+    build:
+      context: .
+      dockerfile: client/Dockerfile
+    image: "422689199069.dkr.ecr.us-east-2.amazonaws.com/neffilaft_front:latest"
+    ports:
+      - "5010:5010"
+    container_name: neffi-frontend
+    networks:
+      - neffi-network
+    environment:
+      - REACT_APP_API_URL=http://backend:8091
+    depends_on:
+      - backend
+    stdin_open: true
+    tty: true
+
+networks:
+  neffi-network:
+    driver: bridge
