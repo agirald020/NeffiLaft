@@ -64,7 +64,13 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       .join(" ");
   };
 
-  const sanitizeWord = (value: string) => value.replace(/\s/g, "");
+  const sanitizeWord = (value: string) => {
+    return value
+      .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, "") // sin espacios
+      .replace(/\s+/g, " ") // evita espacios múltiples
+      .trimStart() // opcional: evita espacio al inicio
+      .toUpperCase();
+  };
 
   const showResultToast = (count: number) => {
     if (count > 0) {
