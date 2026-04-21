@@ -2,7 +2,6 @@ package com.neffi.laft.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
@@ -125,17 +124,11 @@ public class RestrictiveListController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file,
-            HttpServletRequest request) {
-        try {
-            String clientIp = utils.getClientIp(request);
-            List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            log.error("Error procesando archivo Excel", e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<List<BulkValidateResultDto>> validateBulk(@RequestParam("file") MultipartFile file,
+            HttpServletRequest request) throws Exception {
+        String clientIp = utils.getClientIp(request);
+        List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
+        return ResponseEntity.ok(results);
     }
 
     /**
