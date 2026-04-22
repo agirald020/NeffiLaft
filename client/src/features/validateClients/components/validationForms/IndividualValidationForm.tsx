@@ -13,7 +13,6 @@ import { hasPermission } from "@/shared/lib/permissions";
 
 interface IndividualValidationFormProps { }
 
-
 const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps> = () => {
   // !hooks
   const { toast } = useToast();
@@ -270,7 +269,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: CARLOS"
                   value={firstName}
-                    onChange={(e) => setFirstName(sanitizeWord(e.target.value))}
+                  onChange={(e) => setFirstName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-first-name"
                 />
@@ -284,7 +283,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: ANDRÉS"
                   value={secondName}
-                    onChange={(e) => setSecondName(sanitizeWord(e.target.value))}
+                  onChange={(e) => setSecondName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-second-name"
                 />

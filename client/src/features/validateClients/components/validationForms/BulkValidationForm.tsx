@@ -11,6 +11,7 @@ import { useValidateClient } from "../../hooks/useValidateClient";
 import type { BulkResult } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
 import { apiRequest } from "@/shared/lib/queryClient";
+import Swal from "sweetalert2";
 
 interface BulkValidationFormProps { }
 
@@ -49,12 +50,12 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
     setSelectedFile(file);
   };
 
-  const handleBulkSubmit = (e: React.FormEvent) => {
+  const handleBulkSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     setResults(null);
     setBulkResults(null);
-    
+
     if (!selectedFile) {
       toast({
         title: "Archivo requerido",
@@ -68,9 +69,9 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
       onSuccess: (data: BulkResult[]) => {
         setBulkResults(data);
         setResults(null);
+
         setSearchContext({
           type: "bulk",
-          value: selectedFile.name,
         });
 
         toast({
@@ -78,13 +79,95 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
           description: `Se procesaron ${data.length} registros.`,
         });
       },
-      onError: (err: any) => {
-        toast({
+
+      onError: async (err: any) => {
+        let response = err?.response?.data;
+
+        if (!response && typeof err?.message === "string") {
+          const jsonStart = err.message.indexOf("{");
+          if (jsonStart !== -1) {
+            try {
+              response = JSON.parse(err.message.substring(jsonStart));
+            } catch {
+              response = null;
+            }
+          }
+        }
+
+        if (response?.errors && Array.isArray(response.errors)) {
+          const rows = response.errors
+            .flatMap((fila: any) =>
+              fila.errors?.map((e: any) => ({
+                row: fila.rowNumber,
+                value: e.value ?? "",
+                message: e.message ?? "",
+              })) || []
+            )
+            .map(
+              (item: any, index: number) => `
+              <tr style="background:${index % 2 === 0 ? "#f9fafb" : "#ffffff"};">
+                <td style="text-align:center; padding:8px; white-space: nowrap;"> ${item.row} </td>
+                <td style="padding:8px; text-align:center;">${item.value}</td>
+                <td style="padding:8px; text-align:left;">${item.message}</td>
+              </tr>
+            `
+            )
+            .join("");
+
+          const htmlErrors = `
+          <div style="width:100%; height:100%; display:flex; flex-direction:column;">
+            <div style="flex:1; overflow-y:auto;">
+              <table style="width:100%; max-width:900px; margin:auto; border-collapse:collapse;">
+                <thead>
+                  <tr style="background:#f1f5f9;">
+                    <th style="
+                      padding:10px;
+                      text-align:center;
+                      border-bottom:1px solid #ddd;
+                      white-space: nowrap;
+                      min-width: 80px;
+                    ">
+                      Fila
+                    </th>
+                    <th style="padding:10px; text-align:center; border-bottom:1px solid #ddd;">Valor</th>
+                    <th style="padding:10px; text-align:left; border-bottom:1px solid #ddd;">Error</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rows}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <p style="margin-top:12px; text-align:center;">
+            Corrige los errores en el archivo antes de volver a subirlo.
+          </p>
+        `;
+
+          await Swal.fire({
+            title: "Errores de validación",
+            html: htmlErrors,
+            icon: "error",
+            width: "55vw",
+            confirmButtonText: "Aceptar",
+            customClass: {
+              popup: "swal-fixed-height",
+              confirmButton: "btn-gradient-primary",
+            },
+            confirmButtonColor: "hsl(0, 72%, 51%)"
+          });
+
+          return;
+        }
+
+        await Swal.fire({
           title: "Error al validar archivo",
-          description:
+          text:
+            response?.message ||
             err?.message ||
-            "No se pudo procesar el archivo. Intente nuevamente.",
-          variant: "destructive",
+            "No se pudo procesar el archivo.",
+          icon: "error",
         });
       },
     });
@@ -199,25 +282,25 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
               >
                 Descargar Plantilla
               </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* BOTÓN VALIDAR */}
-      <Button
-        type="submit"
-        disabled={bulkMutation.isPending || !selectedFile || !hasPermission("laft:BtnValidarListasMasivos")}
-        className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
-        data-testid="button-validate-bulk"
-      >
-        {bulkMutation.isPending ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Upload className="w-4 h-4 mr-2" />
-        )}
-        Validar Archivo
-      </Button>
-    </div>
+        {/* BOTÓN VALIDAR */}
+        <Button
+          type="submit"
+          disabled={bulkMutation.isPending || !selectedFile || !hasPermission("laft:BtnValidarListasMasivos")}
+          className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
+          data-testid="button-validate-bulk"
+        >
+          {bulkMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Upload className="w-4 h-4 mr-2" />
+          )}
+          Validar Archivo
+        </Button>
+      </div>
     </form >
   );
 };
