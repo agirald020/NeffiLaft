@@ -12,6 +12,7 @@ import type { BulkResult } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
 import { apiRequest } from "@/shared/lib/queryClient";
 import Swal from "sweetalert2";
+import { AppButton } from "@/shared/components/AppButton";
 
 interface BulkValidationFormProps { }
 
@@ -287,9 +288,15 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
         </div>
 
         {/* BOTÓN VALIDAR */}
+        <AppButton
+          permKey="laft:BtnValidarListasMasivos"
+          noPermBehavior="disable"
+        >
+
+        </AppButton>
         <Button
           type="submit"
-          disabled={bulkMutation.isPending || !selectedFile || !hasPermission("laft:BtnValidarListasMasivos")}
+          disabled={bulkMutation.isPending || !selectedFile }
           className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
           data-testid="button-validate-bulk"
         >

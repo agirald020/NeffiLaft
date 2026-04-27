@@ -15,6 +15,7 @@ import type { RestrictiveListMatch } from "../../types/validateClients.types";
 import { hasPermission } from "@/shared/lib/permissions";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { AppButton } from "@/shared/components/AppButton";
 
 interface IndividualResultsProps { }
 
@@ -129,8 +130,8 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
                     <span
                       className={`mt-1 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-bold border ${tipoLista === "RES"
-                          ? "bg-red-100 text-red-700 border-red-200"
-                          : "bg-orange-100 text-orange-700 border-orange-200"
+                        ? "bg-red-100 text-red-700 border-red-200"
+                        : "bg-orange-100 text-orange-700 border-orange-200"
                         }`}
                     >
                       {descriTipoLista}
@@ -142,8 +143,8 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : "bg-red-100 text-red-800 border-red-200"
+                      ? "bg-green-100 text-green-800 border-green-200"
+                      : "bg-red-100 text-red-800 border-red-200"
                       }`}
                   >
                     {permite ? "SÍ" : "NO"}
@@ -174,7 +175,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   // download PDF same behavior as before
   const handleDownloadPdf = () => {
     setDownloadingPdf(true);
-    let data: RestrictiveListMatch [] = []  
+    let data: RestrictiveListMatch[] = []
     if (!results || results.length === 0) {
       data = [{
         identificacion: searchContext?.documentNumber,
@@ -239,22 +240,26 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
               ALERTA
             </span>
           )}
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleDownloadPdf}
-            disabled={downloadingPdf || !hasPermission("laft:BtnDescargarPdfListaIndividual")}
-            className="text-xs"
-            data-testid="button-download-pdf"
+          <AppButton
+            permKey="laft:BtnDescargarPdfListaIndividual"
+            noPermBehavior="disable"
           >
-            {downloadingPdf ? (
-              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-            ) : (
-              <FileDown className="w-3.5 h-3.5 mr-1.5" />
-            )}
-            Descargar Informe PDF
-          </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDownloadPdf}
+              disabled={downloadingPdf}
+              className="text-xs"
+              data-testid="button-download-pdf"
+            >
+              {downloadingPdf ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+              ) : (
+                <FileDown className="w-3.5 h-3.5 mr-1.5" />
+              )}
+              Descargar Informe PDF
+            </Button>
+          </AppButton>
         </div>
       </div>
 

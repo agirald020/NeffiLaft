@@ -10,6 +10,7 @@ import { useValidationStore } from "../../stores/validateClients.store";
 import type { ValidateDto, RestrictiveListMatch } from "../../types/validateClients.types";
 import { ValidateClientDTO } from "../../types/validateClientDTO";
 import { hasPermission } from "@/shared/lib/permissions";
+import { AppButton } from "@/shared/components/AppButton";
 
 interface IndividualValidationFormProps { }
 
@@ -324,19 +325,24 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       </div>
 
       {/* BOTÓN VALIDAR */}
-      <Button
-        type="submit"
-        disabled={individualMutation.isPending || !hasPermission("laft:BtnValidarListasIndividual")}
-        className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
-        data-testid="button-validate"
+      <AppButton
+        permKey="laft:BtnValidarListasIndividual"
+        noPermBehavior="disable"
       >
-        {individualMutation.isPending ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Search className="w-4 h-4 mr-2" />
-        )}
-        Validar en Listas Restrictivas
-      </Button>
+        <Button
+          type="submit"
+          disabled={individualMutation.isPending }
+          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+          data-testid="button-validate"
+        >
+          {individualMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4 mr-2" />
+          )}
+          Validar en Listas Restrictivas
+        </Button>
+      </AppButton>
     </form>
   );
 };
