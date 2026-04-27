@@ -291,12 +291,8 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
         <AppButton
           permKey="laft:BtnValidarListasMasivos"
           noPermBehavior="disable"
-        >
-
-        </AppButton>
-        <Button
           type="submit"
-          disabled={bulkMutation.isPending || !selectedFile }
+          extraDisabled={bulkMutation.isPending || !selectedFile}
           className="w-full h-10 bg-red-600 hover:bg-red-700 text-white"
           data-testid="button-validate-bulk"
         >
@@ -306,7 +302,7 @@ const BulkValidationForm: FunctionComponent<BulkValidationFormProps> = () => {
             <Upload className="w-4 h-4 mr-2" />
           )}
           Validar Archivo
-        </Button>
+        </AppButton>
       </div>
     </form >
   );

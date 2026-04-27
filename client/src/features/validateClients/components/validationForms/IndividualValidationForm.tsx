@@ -328,20 +328,17 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       <AppButton
         permKey="laft:BtnValidarListasIndividual"
         noPermBehavior="disable"
+        type="submit"
+        extraDisabled={individualMutation.isPending}
+        className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+        data-testid="button-validate"
       >
-        <Button
-          type="submit"
-          disabled={individualMutation.isPending }
-          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
-          data-testid="button-validate"
-        >
-          {individualMutation.isPending ? (
-            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-          ) : (
-            <Search className="w-4 h-4 mr-2" />
-          )}
-          Validar en Listas Restrictivas
-        </Button>
+        {individualMutation.isPending ? (
+          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+        ) : (
+          <Search className="w-4 h-4 mr-2" />
+        )}
+        Validar en Listas Restrictivas
       </AppButton>
     </form>
   );

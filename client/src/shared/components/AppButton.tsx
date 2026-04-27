@@ -9,6 +9,7 @@ interface AppButtonProps extends Omit<ButtonProps, "disabled"> {
   permKey: string;
   noPermBehavior?: NoPermBehavior;
   disabledTitle?: string;
+  extraDisabled?: boolean; // para permitir deshabilitar por otras razones además de permisos
 }
 
 export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
@@ -17,6 +18,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
       permKey,
       noPermBehavior = "hide",
       disabledTitle = "No tienes permisos para esta acción",
+      extraDisabled = false,
       className,
       onClick,
       children,
@@ -32,7 +34,7 @@ export const AppButton = React.forwardRef<HTMLButtonElement, AppButtonProps>(
       return null;
     }
 
-    const disabled = sinPermiso && noPermBehavior === "disable";
+    const disabled = extraDisabled || (!tienePermiso && noPermBehavior === "disable");
 
     const handleClick: React.MouseEventHandler<HTMLButtonElement> = (e) => {
       if (disabled) {

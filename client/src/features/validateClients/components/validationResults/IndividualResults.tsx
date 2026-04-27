@@ -243,22 +243,19 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
           <AppButton
             permKey="laft:BtnDescargarPdfListaIndividual"
             noPermBehavior="disable"
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadPdf}
+            extraDisabled={downloadingPdf}
+            className="text-xs"
+            data-testid="button-download-pdf"
           >
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadPdf}
-              disabled={downloadingPdf}
-              className="text-xs"
-              data-testid="button-download-pdf"
-            >
-              {downloadingPdf ? (
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-              ) : (
-                <FileDown className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Descargar Informe PDF
-            </Button>
+            {downloadingPdf ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Descargar Informe PDF
           </AppButton>
         </div>
       </div>

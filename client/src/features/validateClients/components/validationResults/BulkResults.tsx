@@ -192,21 +192,18 @@ const BulkResults: FunctionComponent = () => {
           <AppButton
             permKey="laft:BtnExcelDescargarListaMasivos"
             noPermBehavior="disable"
+            variant="outline"
+            size="sm"
+            onClick={handleDownloadExcel}
+            extraDisabled={excelMutation.isPending}
+            className="text-xs"
           >
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDownloadExcel}
-              disabled={excelMutation.isPending}
-              className="text-xs"
-            >
-              {excelMutation.isPending ? (
-                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
-              ) : (
-                <FileDown className="w-3.5 h-3.5 mr-1.5" />
-              )}
-              Descargar Excel
-            </Button>
+            {excelMutation.isPending ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <FileDown className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Descargar Excel
           </AppButton>
         </div>
 
