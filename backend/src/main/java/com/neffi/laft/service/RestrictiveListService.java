@@ -377,11 +377,11 @@ public class RestrictiveListService {
      * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las
      * coincidencias.
      *
-     * @param results  lista de resultados de validateBulk
-     * @param clientIp dirección IP del equipo que originó la solicitud
+     * @param results lista de resultados de validateBulk
+     * @param userIp  dirección IP del equipo del usuario, reportada por el frontend
      * @return Workbook Excel con los resultados
      */
-    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results, String clientIp) {
+    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results, String userIp) {
         log.debug("Generando reporte Excel para {} registros", results.size());
         Workbook workbook = new XSSFWorkbook();
 
@@ -390,7 +390,7 @@ public class RestrictiveListService {
 
         // Crear hoja de Resumen
         Sheet summarySheet = workbook.createSheet("Resumen");
-        createSummarySheet(summarySheet, results, headerStyle, clientIp);
+        createSummarySheet(summarySheet, results, headerStyle, userIp);
 
         // Crear hoja de Detalles
         Sheet detailsSheet = workbook.createSheet("Detalles");
@@ -422,10 +422,10 @@ public class RestrictiveListService {
      * @param sheet       hoja destino
      * @param results     resultados de validación
      * @param headerStyle estilo para encabezados de tabla
-     * @param clientIp    dirección IP del equipo que originó la solicitud
+     * @param userIp      dirección IP del equipo del usuario, reportada por el frontend
      */
     private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results,
-        CellStyle headerStyle, String clientIp) {
+        CellStyle headerStyle, String userIp) {
         CellStyle metadataLabelStyle = sheet.getWorkbook().createCellStyle();
         Font metadataLabelFont = sheet.getWorkbook().createFont();
         metadataLabelFont.setBold(true);
@@ -460,7 +460,7 @@ public class RestrictiveListService {
         Cell equipoLabelCell = equipoRow.createCell(0);
         equipoLabelCell.setCellValue("Identificación del equipo");
         equipoLabelCell.setCellStyle(metadataLabelStyle);
-        equipoRow.createCell(1).setCellValue(clientIp);
+        equipoRow.createCell(1).setCellValue(userIp);
 
         // Headers (fila 6, dejando fila 5 como separador)
         Row headerRow = sheet.createRow(6);

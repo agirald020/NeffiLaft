@@ -139,22 +139,18 @@ public class RestrictiveListController {
      * una con el resumen de coincidencias y otra con los detalles de las
      * coincidencias encontradas.
      * 
-     * @param file    archivo Excel con los datos a validar
-     * @param request la solicitud HTTP
+     * @param data lista de resultados de validación masiva, con {@code userIp} del cliente
      * @return archivo Excel con los resultados de la validación
      */
     @PostMapping("/report/excel")
     public ResponseEntity<byte[]> generateBulkReportExcel(
-            @RequestBody List<BulkValidateResultDto> data,
-            HttpServletRequest request) {
+            @RequestBody List<BulkValidateResultDto> data) {
         try {
-            String clientIp = utils.getClientIp(request);
-            String frontendIp = data.isEmpty() ? null : data.get(0).getUserIp();
-            log.info("Generando reporte Excel masivo - IP extraída del request: {} | IP reportada por el frontend: {}",
-                    clientIp, frontendIp);
+            String userIp = data.isEmpty() ? null : data.get(0).getUserIp();
+            log.info("Generando reporte Excel masivo - IP del usuario: {}", userIp);
 
             // Generar Excel con resultados
-            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data, clientIp);
+            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data, userIp);
                     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 workbook.write(out);
 
