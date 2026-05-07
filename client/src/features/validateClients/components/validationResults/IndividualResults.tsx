@@ -204,6 +204,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
         queryFullName: searchContext?.fullName ?? "",
         matchCount: results?.length ?? 0,
         matches: results ?? [],
+        userIp: "" // se llena en el propio service antes de enviarlo al backend, no es necesario que el componente se preocupe por esto
       },
     ];
 
@@ -280,7 +281,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
             ) : (
               <FileDown className="w-3.5 h-3.5 mr-1.5" />
             )}
-            Descargar Informe
+            Descargar Informe excel
           </AppButton>
         </div>
       </div>
