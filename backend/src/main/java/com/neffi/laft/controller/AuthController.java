@@ -1,5 +1,7 @@
 package com.neffi.laft.controller;
 
+import com.neffi.laft.dto.BusinessHoursResponseDto;
+import com.neffi.laft.dto.ResponseBase;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +12,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +27,12 @@ public class AuthController {
 
     @Value("${keycloak.auth-server-url}")
     private String keycloakUrl;
+
+    @Value("${app.businessHours.start}")
+    private String businessHourStart;
+
+    @Value("${app.businessHours.end}")
+    private String businessHourEnd;
 
     //Se usa
     @GetMapping("/user")
@@ -56,5 +65,33 @@ public class AuthController {
                 "realm", "neffiLaft",
                 "clientId", "neffiLaft-app",
                 "bypassActive", bypassAuth);
+    }
+
+    /**
+     * Evalua si la hora actual del servidor esta dentro del horario laboral
+     * configurado por variables de entorno.
+     * <p>
+     * El horario se interpreta en formato de 24 horas (`HH:mm`) y se toma desde:
+     * `app.businessHours.start` y `app.businessHours.end`.
+     * </p>
+     *
+     * @return respuesta estandar con el resultado booleano y las horas
+     *         parametrizadas.
+     */
+    @GetMapping("/business-hours")
+    public ResponseEntity<ResponseBase<BusinessHoursResponseDto>> isBusinessHours() {
+        LocalTime startTime = LocalTime.parse(businessHourStart);
+        LocalTime endTime = LocalTime.parse(businessHourEnd);
+        LocalTime now = LocalTime.now();
+
+        boolean inBusinessHours = !now.isBefore(startTime) && !now.isAfter(endTime);
+
+        BusinessHoursResponseDto data = BusinessHoursResponseDto.builder()
+            .isBusinessHours(inBusinessHours)
+            .startHour(businessHourStart)
+            .endHour(businessHourEnd)
+            .build();
+
+        return ResponseEntity.ok(ResponseBase.success(data));
     }
 }

@@ -1,5 +1,6 @@
 package com.neffi.laft.exception;
 
+import java.time.format.DateTimeParseException;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.neffi.laft.dto.ApiErrorResponseDto;
+import com.neffi.laft.dto.ResponseBase;
 import com.neffi.laft.exception.custom.ExceptionBulkValidation;
 
 import lombok.extern.slf4j.Slf4j;
@@ -16,6 +18,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(DateTimeParseException.class)
+    public ResponseEntity<ResponseBase<String>> handleDateTimeParseException(DateTimeParseException ex) {
+        ResponseBase<String> response = ResponseBase.error(
+                HttpStatus.INTERNAL_SERVER_ERROR.value(),
+                "Formato invalido en configuracion de horario laboral: " + ex.getParsedString());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+    }
 
     @ExceptionHandler(ExceptionBulkValidation.class)
     public ResponseEntity<ApiErrorResponseDto> handleExceptionCustom(ExceptionBulkValidation ex) {
