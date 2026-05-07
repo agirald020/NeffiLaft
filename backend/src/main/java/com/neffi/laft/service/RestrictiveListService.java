@@ -63,6 +63,9 @@ public class RestrictiveListService {
     @Value("${app.restrictiveList.maxBulkRecords}")
     private int maxBulkRecords;
 
+    @Value("${app.restrictiveList.canal}")
+    private String canal;
+
     private final RestrictiveListRepository restrictiveListRepository;
 
     private final TiposDocumentosService tiposDocumentosService;
@@ -177,12 +180,7 @@ public class RestrictiveListService {
                 validateNoWhitespace(primerApellido, BulkTemplateColumn.PRIMER_APELLIDO, rowErrors);
                 validateNoWhitespace(segundoApellido, BulkTemplateColumn.SEGUNDO_APELLIDO, rowErrors);
 
-                if (docNumber.isBlank()) {
-                    rowErrors.add(BulkErrorDto.builder()
-                            .value(docNumber)
-                            .message("El campo Número de Documento es obligatorio.")
-                            .build());
-                } else {
+                if (!docNumber.isBlank()) {
                     if (!DOCUMENT_NUMBER_PATTERN.matcher(docNumber).matches()) {
                         rowErrors.add(BulkErrorDto.builder()
                                 .value(docNumber)
@@ -206,13 +204,6 @@ public class RestrictiveListService {
                 validatePersonNameField(segundoNombre, BulkTemplateColumn.SEGUNDO_NOMBRE, rowErrors);
                 validatePersonNameField(primerApellido, BulkTemplateColumn.PRIMER_APELLIDO, rowErrors);
                 validatePersonNameField(segundoApellido, BulkTemplateColumn.SEGUNDO_APELLIDO, rowErrors);
-
-                if (primerNombreCol.isBlank() && razonSocialCol.isBlank()) {
-                    rowErrors.add(BulkErrorDto.builder()
-                            .value("")
-                            .message("Debe diligenciar Primer Nombre o Razón social.")
-                            .build());
-                }
 
                 if (!rowErrors.isEmpty()) {
                     validationErrors.add(BulkValidationRowErrorDto.builder()
@@ -385,11 +376,12 @@ public class RestrictiveListService {
      * Genera un Workbook Excel con los resultados de la validación masiva.
      * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las
      * coincidencias.
-     * 
-     * @param results Lista de resultados de validateBulk
+     *
+     * @param results  lista de resultados de validateBulk
+     * @param clientIp dirección IP del equipo que originó la solicitud
      * @return Workbook Excel con los resultados
      */
-    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results) {
+    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results, String clientIp) {
         log.debug("Generando reporte Excel para {} registros", results.size());
         Workbook workbook = new XSSFWorkbook();
 
@@ -398,7 +390,7 @@ public class RestrictiveListService {
 
         // Crear hoja de Resumen
         Sheet summarySheet = workbook.createSheet("Resumen");
-        createSummarySheet(summarySheet, results, headerStyle);
+        createSummarySheet(summarySheet, results, headerStyle, clientIp);
 
         // Crear hoja de Detalles
         Sheet detailsSheet = workbook.createSheet("Detalles");
@@ -430,15 +422,16 @@ public class RestrictiveListService {
      * @param sheet       hoja destino
      * @param results     resultados de validación
      * @param headerStyle estilo para encabezados de tabla
+     * @param clientIp    dirección IP del equipo que originó la solicitud
      */
     private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results,
-            CellStyle headerStyle) {
+        CellStyle headerStyle, String clientIp) {
         CellStyle metadataLabelStyle = sheet.getWorkbook().createCellStyle();
         Font metadataLabelFont = sheet.getWorkbook().createFont();
         metadataLabelFont.setBold(true);
         metadataLabelStyle.setFont(metadataLabelFont);
 
-        // Metadatos en A1:B3
+        // Metadatos en A1:B5
         Row processedRow = sheet.createRow(0);
         Cell processedLabelCell = processedRow.createCell(0);
         processedLabelCell.setCellValue("Registros Procesados");
@@ -455,10 +448,22 @@ public class RestrictiveListService {
         Cell userLabelCell = userRow.createCell(0);
         userLabelCell.setCellValue("Usuario generador");
         userLabelCell.setCellStyle(metadataLabelStyle);
-        userRow.createCell(1).setCellValue(utils.getCurrentUsername());
+        userRow.createCell(1).setCellValue(utils.getCurrentFullName());
 
-        // Headers
-        Row headerRow = sheet.createRow(4);
+        Row canalRow = sheet.createRow(3);
+        Cell canalLabelCell = canalRow.createCell(0);
+        canalLabelCell.setCellValue("Canal utilizado");
+        canalLabelCell.setCellStyle(metadataLabelStyle);
+        canalRow.createCell(1).setCellValue(canal);
+
+        Row equipoRow = sheet.createRow(4);
+        Cell equipoLabelCell = equipoRow.createCell(0);
+        equipoLabelCell.setCellValue("Identificación del equipo");
+        equipoLabelCell.setCellStyle(metadataLabelStyle);
+        equipoRow.createCell(1).setCellValue(clientIp);
+
+        // Headers (fila 6, dejando fila 5 como separador)
+        Row headerRow = sheet.createRow(6);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -468,7 +473,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 5;
+        int rowNum = 7;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 

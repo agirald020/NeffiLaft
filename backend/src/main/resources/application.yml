@@ -44,6 +44,7 @@ app:
     validationEventDescription: Validación de cliente contra listas restrictivas
     returnsLinf: SI
     maxBulkRecords: 20
+    canal: NeffiLaft
   businessHours:
     start: ${BUSINESS_HOUR_START}
     end: ${BUSINESS_HOUR_END}

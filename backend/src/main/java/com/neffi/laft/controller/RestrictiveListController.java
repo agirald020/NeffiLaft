@@ -144,14 +144,17 @@ public class RestrictiveListController {
      * @return archivo Excel con los resultados de la validación
      */
     @PostMapping("/report/excel")
-    public ResponseEntity<byte[]> generateBulkReportExcel(@RequestBody List<BulkValidateResultDto> data,
+    public ResponseEntity<byte[]> generateBulkReportExcel(
+            @RequestBody List<BulkValidateResultDto> data,
             HttpServletRequest request) {
         try {
             String clientIp = utils.getClientIp(request);
-            log.info("Generando reporte Excel masivo desde IP: {}", clientIp);
+            String frontendIp = data.isEmpty() ? null : data.get(0).getUserIp();
+            log.info("Generando reporte Excel masivo - IP extraída del request: {} | IP reportada por el frontend: {}",
+                    clientIp, frontendIp);
 
             // Generar Excel con resultados
-            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data);
+            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data, clientIp);
                     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 workbook.write(out);
 
