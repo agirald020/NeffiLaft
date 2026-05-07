@@ -8,11 +8,9 @@ import {
   Loader2,
   FileDown,
 } from "lucide-react";
-import { Button } from "@/shared/ui/button";
 import { useToast } from "@/shared/hooks/use-toast";
 import { useValidationStore } from "../../stores/validateClients.store";
-import type { RestrictiveListMatch } from "../../types/validateClients.types";
-import { hasPermission } from "@/shared/lib/permissions";
+import type { BulkResult, RestrictiveListMatch } from "../../types/validateClients.types";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { AppButton } from "@/shared/components/AppButton";
@@ -21,8 +19,8 @@ interface IndividualResultsProps { }
 
 const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
   const { toast } = useToast();
-  const { pdfMutation } = useValidateClient();
-  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const { pdfMutation, excelMutation } = useValidateClient();
+  const [downloadingExcel, setDownloadingExcel] = useState(false);
 
   // select only the needed bits from the store (avoids full-store re-renders)
   const results = useValidationStore(s => s.results);
@@ -70,9 +68,6 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
               Coincidencia
             </th>
             <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-              Permite Vinculación
-            </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Comentarios
             </th>
           </tr>
@@ -83,7 +78,6 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
             const displayName = match.sdnName?.trim() || match.nombre || "—";
             const documentId = match.identificacion || String(match.entNum) || "—";
             const listName = match.nombre || match.descriTipoLista || `Lista ${match.codigoLista}`;
-            const permite = !(match.permiteIdentificacion == "NO");
             const descriTipoLista = match.descriTipoLista?.toUpperCase() || "";
             const tipoLista = match.tipoLista?.toUpperCase();
             const coincidencia = match.tipo ?? "—";
@@ -138,18 +132,6 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
                     </span>
                   </div>
                 </td>
-
-                {/* PERMITE VINCULACIÓN */}
-                <td className="px-6 py-4">
-                  <span
-                    className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite
-                      ? "bg-green-100 text-green-800 border-green-200"
-                      : "bg-red-100 text-red-800 border-red-200"
-                      }`}
-                  >
-                    {permite ? "SÍ" : "NO"}
-                  </span>
-                </td>
                 {/* COMENTARIO */}
                 <td className="px-6 py-4 max-w-xs">
                   <Tooltip>
@@ -174,7 +156,7 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
 
   // download PDF same behavior as before
   const handleDownloadPdf = () => {
-    setDownloadingPdf(true);
+    setDownloadingExcel(true);
     let data: RestrictiveListMatch[] = []
     if (!results || results.length === 0) {
       data = [{
@@ -200,13 +182,48 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
         link.click();
 
         URL.revokeObjectURL(url);
-        setDownloadingPdf(false);
+        setDownloadingExcel(false);
       },
       onError: (err: any) => {
-        setDownloadingPdf(false);
+        setDownloadingExcel(false);
         toast({
           title: "Error",
           description: err?.message || "No se pudo generar el informe PDF.",
+          variant: "destructive",
+        });
+      },
+    });
+  };
+
+  const handleDownloadExcel = () => {
+    setDownloadingExcel(true);
+
+    const payload: BulkResult[] = [
+      {
+        queryDocumentNumber: searchContext?.documentNumber ?? "",
+        queryFullName: searchContext?.fullName ?? "",
+        matchCount: results?.length ?? 0,
+        matches: results ?? [],
+      },
+    ];
+
+    excelMutation.mutate(payload, {
+      onSuccess: (blob) => {
+        const url = URL.createObjectURL(blob);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `informe_validacion_${searchContext?.documentNumber || "listas"}.xlsx`;
+        link.click();
+
+        URL.revokeObjectURL(url);
+        setDownloadingExcel(false);
+      },
+      onError: (err: any) => {
+        setDownloadingExcel(false);
+        toast({
+          title: "Error",
+          description: err?.message || "No se pudo generar el informe Excel.",
           variant: "destructive",
         });
       },
@@ -234,28 +251,36 @@ const IndividualResults: FunctionComponent<IndividualResultsProps> = () => {
         </div>
 
         <div className="flex items-center space-x-3">
-          {results.length > 0 && (
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
-              <AlertTriangle className="w-3 h-3 mr-1" />
-              ALERTA
-            </span>
-          )}
+          {results.length > 0 && (() => {
+            const tieneAlgunaRestriccion = results.some(match => match.permiteIdentificacion === "NO");
+            return (
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${tieneAlgunaRestriccion
+                    ? "bg-red-100 text-red-700 border-red-200"
+                    : "bg-yellow-100 text-yellow-800 border-yellow-200"
+                  }`}
+                data-testid="vinculacion-permitida"
+              >
+                Permite Vinculación: {tieneAlgunaRestriccion ? "NO" : "SÍ"}
+              </span>
+            );
+          })()}
           <AppButton
             permKey="laft:BtnDescargarPdfListaIndividual"
             noPermBehavior="disable"
             variant="outline"
             size="sm"
-            onClick={handleDownloadPdf}
-            extraDisabled={downloadingPdf}
+            onClick={handleDownloadExcel}
+            extraDisabled={downloadingExcel}
             className="text-xs"
-            data-testid="button-download-pdf"
+            data-testid="button-download-excel"
           >
-            {downloadingPdf ? (
+            {downloadingExcel ? (
               <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
             ) : (
               <FileDown className="w-3.5 h-3.5 mr-1.5" />
             )}
-            Descargar Informe PDF
+            Descargar Informe
           </AppButton>
         </div>
       </div>

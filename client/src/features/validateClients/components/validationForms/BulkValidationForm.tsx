@@ -9,7 +9,6 @@ import { useToast } from "@/shared/hooks/use-toast";
 import { useValidationStore } from "../../stores/validateClients.store";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import type { BulkResult } from "../../types/validateClients.types";
-import { hasPermission } from "@/shared/lib/permissions";
 import { apiRequest } from "@/shared/lib/queryClient";
 import Swal from "sweetalert2";
 import { AppButton } from "@/shared/components/AppButton";

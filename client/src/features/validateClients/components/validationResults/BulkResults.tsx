@@ -1,17 +1,16 @@
 // client/src/features/validateClients/components/validationResults/BulkResults.tsx
 
-import React, { FunctionComponent, useCallback, useMemo, useState } from "react";
+import React, { FunctionComponent, useMemo } from "react";
 import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2 } from "lucide-react";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { BulkResult, RestrictiveListMatch } from "../../types/validateClients.types";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import { useToast } from "@/shared/hooks/use-toast";
-import { Button } from "@/shared/ui/button";
-import { hasPermission } from "@/shared/lib/permissions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 import { AppButton } from "@/shared/components/AppButton";
 
 const BulkResults: FunctionComponent = () => {
+
   const bulkResults = useValidationStore((s) => s.bulkResults);
   const { excelMutation } = useValidateClient();
   const { toast } = useToast();

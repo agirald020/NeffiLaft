@@ -1,7 +1,6 @@
 // client\src\features\validateClients\components\validationForms\IndividualValidationForm.tsx
 import React, { FunctionComponent } from "react";
 import { Building2, UserRound, Loader2, Search } from "lucide-react";
-import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -9,7 +8,6 @@ import { useValidateClient } from "../../hooks/useValidateClient";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { ValidateDto, RestrictiveListMatch } from "../../types/validateClients.types";
 import { ValidateClientDTO } from "../../types/validateClientDTO";
-import { hasPermission } from "@/shared/lib/permissions";
 import { AppButton } from "@/shared/components/AppButton";
 
 interface IndividualValidationFormProps { }

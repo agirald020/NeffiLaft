@@ -5,6 +5,7 @@ import { AuthProvider } from "@/features/Auth/components/auth-provider";
 import { LoginRequired } from "@/features/Auth/components/login-required";
 import { queryClient } from "@/shared/lib/queryClient";
 import Router from "./Router";
+import { WorkingScheduleGuard } from "@/features/workingSchedule/components/WorkingScheduleGuard";
 
 function App() {
   return (
@@ -13,7 +14,9 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <LoginRequired>
-            <Router />
+            <WorkingScheduleGuard>
+              <Router />
+            </WorkingScheduleGuard>
           </LoginRequired>
         </TooltipProvider>
       </AuthProvider>
