@@ -322,22 +322,29 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
         )}
       </div>
 
-      {/* BOTÓN VALIDAR */}
-      <AppButton
-        permKey="laft:BtnValidarListasIndividual"
-        noPermBehavior="disable"
-        type="submit"
-        extraDisabled={individualMutation.isPending}
-        className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
-        data-testid="button-validate"
-      >
-        {individualMutation.isPending ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Search className="w-4 h-4 mr-2" />
-        )}
-        Validar en Listas Restrictivas
-      </AppButton>
+      {/* TEXTO DESCRIPTIVO + BOTÓN VALIDAR */}
+      <div className="space-y-3">
+        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed italic">
+          {personType === "natural"
+            ? "💡 Si realiza búsqueda por nombre, asegúrese de ingresar el nombre completo del usuario a consultar para obtener resultados precisos."
+            : "💡 Ingrese el nombre jurídico completo de la empresa para obtener resultados precisos en la búsqueda."}
+        </p>
+        <AppButton
+          permKey="laft:BtnValidarListasIndividual"
+          noPermBehavior="disable"
+          type="submit"
+          extraDisabled={individualMutation.isPending}
+          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+          data-testid="button-validate"
+        >
+          {individualMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4 mr-2" />
+          )}
+          Validar en Listas Restrictivas
+        </AppButton>
+      </div>
     </form>
   );
 };

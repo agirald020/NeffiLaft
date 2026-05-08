@@ -462,8 +462,16 @@ public class RestrictiveListService {
         equipoLabelCell.setCellStyle(metadataLabelStyle);
         equipoRow.createCell(1).setCellValue(userIp);
 
-        // Headers (fila 6, dejando fila 5 como separador)
-        Row headerRow = sheet.createRow(6);
+        // Permite Validación (fila 5)
+        Row permiteValidacionRow = sheet.createRow(5);
+        Cell permiteValidacionLabelCell = permiteValidacionRow.createCell(0);
+        permiteValidacionLabelCell.setCellValue("Permite Validación");
+        permiteValidacionLabelCell.setCellStyle(metadataLabelStyle);
+        String permiteValidacionValue = determinePermiteValidacion(results);
+        permiteValidacionRow.createCell(1).setCellValue(permiteValidacionValue);
+
+        // Headers (fila 7, dejando fila 6 como separador)
+        Row headerRow = sheet.createRow(7);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -473,7 +481,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 7;
+        int rowNum = 8;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 
@@ -537,6 +545,27 @@ public class RestrictiveListService {
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
         }
+    }
+
+    /**
+     * Determina el valor de "Permite Validación" para el resumen.
+     * 
+     * Devuelve "Sí" si todos los registros de coincidencias tienen permiteIdentificacion = "S".
+     * Devuelve "No" si al menos una coincidencia tiene permiteIdentificacion distinto de "S".
+     * Si no hay coincidencias, devuelve "Sí" por defecto.
+     *
+     * @param results lista de resultados de validación
+     * @return "Sí" o "No" según la lógica evaluada
+     */
+    private String determinePermiteValidacion(List<BulkValidateResultDto> results) {
+        for (BulkValidateResultDto result : results) {
+            for (RestrictiveListEntry match : result.getMatches()) {
+                if (!"S".equalsIgnoreCase(match.getPermiteIdentificacion())) {
+                    return "No";
+                }
+            }
+        }
+        return "Sí";
     }
 
     /**
