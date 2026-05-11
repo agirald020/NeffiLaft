@@ -462,16 +462,19 @@ public class RestrictiveListService {
         equipoLabelCell.setCellStyle(metadataLabelStyle);
         equipoRow.createCell(1).setCellValue(userIp);
 
-        // Permite Validación (fila 5)
-        Row permiteValidacionRow = sheet.createRow(5);
-        Cell permiteValidacionLabelCell = permiteValidacionRow.createCell(0);
-        permiteValidacionLabelCell.setCellValue("Permite Validación");
-        permiteValidacionLabelCell.setCellStyle(metadataLabelStyle);
-        String permiteValidacionValue = determinePermiteValidacion(results);
-        permiteValidacionRow.createCell(1).setCellValue(permiteValidacionValue);
+        // Fila separadora (fila 5)
+        sheet.createRow(5);
 
-        // Headers (fila 7, dejando fila 6 como separador)
-        Row headerRow = sheet.createRow(7);
+        // Permite Vinculación (fila 6)
+        Row permiteVinculacionRow = sheet.createRow(6);
+        Cell permiteVinculacionLabelCell = permiteVinculacionRow.createCell(0);
+        permiteVinculacionLabelCell.setCellValue("Permite Vinculación");
+        permiteVinculacionLabelCell.setCellStyle(metadataLabelStyle);
+        String permiteVinculacionValue = determinePermiteVinculacion(results);
+        permiteVinculacionRow.createCell(1).setCellValue(permiteVinculacionValue);
+
+        // Headers (fila 8, dejando fila 7 como separador)
+        Row headerRow = sheet.createRow(8);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -481,7 +484,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 8;
+        int rowNum = 9;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 
@@ -548,7 +551,7 @@ public class RestrictiveListService {
     }
 
     /**
-     * Determina el valor de "Permite Validación" para el resumen.
+     * Determina el valor de "Permite Vinculación" para el resumen.
      * 
      * Devuelve "Sí" si todos los registros de coincidencias tienen permiteIdentificacion = "S".
      * Devuelve "No" si al menos una coincidencia tiene permiteIdentificacion distinto de "S".
@@ -557,7 +560,7 @@ public class RestrictiveListService {
      * @param results lista de resultados de validación
      * @return "Sí" o "No" según la lógica evaluada
      */
-    private String determinePermiteValidacion(List<BulkValidateResultDto> results) {
+    private String determinePermiteVinculacion(List<BulkValidateResultDto> results) {
         for (BulkValidateResultDto result : results) {
             for (RestrictiveListEntry match : result.getMatches()) {
                 if (!"S".equalsIgnoreCase(match.getPermiteIdentificacion())) {
