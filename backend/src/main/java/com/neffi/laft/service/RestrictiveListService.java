@@ -465,16 +465,20 @@ public class RestrictiveListService {
         // Fila separadora (fila 5)
         sheet.createRow(5);
 
-        // Permite Vinculación (fila 6)
-        Row permiteVinculacionRow = sheet.createRow(6);
-        Cell permiteVinculacionLabelCell = permiteVinculacionRow.createCell(0);
-        permiteVinculacionLabelCell.setCellValue("Permite Vinculación");
-        permiteVinculacionLabelCell.setCellStyle(metadataLabelStyle);
-        String permiteVinculacionValue = determinePermiteVinculacion(results);
-        permiteVinculacionRow.createCell(1).setCellValue(permiteVinculacionValue);
+        // Mostrar "Permite Vinculación" sólo cuando es una descarga individual (un solo resultado)
+        boolean isIndividual = results != null && results.size() == 1;
+        if (isIndividual) {
+            Row permiteVinculacionRow = sheet.createRow(6);
+            Cell permiteVinculacionLabelCell = permiteVinculacionRow.createCell(0);
+            permiteVinculacionLabelCell.setCellValue("Permite Vinculación");
+            permiteVinculacionLabelCell.setCellStyle(metadataLabelStyle);
+            String permiteVinculacionValue = determinePermiteVinculacion(results);
+            permiteVinculacionRow.createCell(1).setCellValue(permiteVinculacionValue);
+        }
 
-        // Headers (fila 8, dejando fila 7 como separador)
-        Row headerRow = sheet.createRow(8);
+        // Headers (fila 8 cuando mostramos Permite Vinculación, o fila 6 en caso masivo)
+        int headerRowIndex = isIndividual ? 8 : 6;
+        Row headerRow = sheet.createRow(headerRowIndex);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -484,7 +488,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 9;
+        int rowNum = headerRowIndex + 1;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 
