@@ -251,7 +251,22 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
               type="text"
               placeholder="Ej: INVERSIONES EL DORADO S.A.S."
               value={companyName}
-              onChange={(e) => setCompanyName(e.target.value)}
+              onChange={(e) => {
+                let value = e.target.value;
+                // Evita espacios al inicio
+                if (value.startsWith(" ")) {
+                  value = value.trimStart();
+                }
+                // Reemplaza múltiples espacios con uno
+                value = value.replace(/\s+/g, " ");
+                // Convierte a mayúsculas
+                value = value.toUpperCase();
+                setCompanyName(value);
+              }}
+              onBlur={(e) => {
+                // Aplica trim final al perder el foco
+                setCompanyName(e.target.value.trim());
+              }}
               className="h-10"
               data-testid="input-company-name"
             />
