@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger
 } from "@/shared/ui/dropdown-menu";
 import { useNeffiTrustUrl } from "../data/redirect/hooks/use-redirect";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { AppsItems } from "../data/redirect/AppsItems";
 import { hasPermission } from "../lib/permissions";
 

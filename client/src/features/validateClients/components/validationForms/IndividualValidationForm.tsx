@@ -1,7 +1,6 @@
 // client\src\features\validateClients\components\validationForms\IndividualValidationForm.tsx
 import React, { FunctionComponent } from "react";
 import { Building2, UserRound, Loader2, Search } from "lucide-react";
-import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
 import { Label } from "@/shared/ui/label";
 import { useToast } from "@/shared/hooks/use-toast";
@@ -9,10 +8,9 @@ import { useValidateClient } from "../../hooks/useValidateClient";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { ValidateDto, RestrictiveListMatch } from "../../types/validateClients.types";
 import { ValidateClientDTO } from "../../types/validateClientDTO";
-import { hasPermission } from "@/shared/lib/permissions";
+import { AppButton } from "@/shared/components/AppButton";
 
 interface IndividualValidationFormProps { }
-
 
 const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps> = () => {
   // !hooks
@@ -64,7 +62,13 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
       .join(" ");
   };
 
-  const sanitizeWord = (value: string) => value.replace(/\s/g, "");
+  const sanitizeWord = (value: string) => {
+    return value
+      .replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ]/g, "") // sin espacios
+      .replace(/\s+/g, " ") // evita espacios múltiples
+      .trimStart() // opcional: evita espacio al inicio
+      .toUpperCase();
+  };
 
   const showResultToast = (count: number) => {
     if (count > 0) {
@@ -264,7 +268,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: CARLOS"
                   value={firstName}
-                    onChange={(e) => setFirstName(sanitizeWord(e.target.value))}
+                  onChange={(e) => setFirstName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-first-name"
                 />
@@ -278,7 +282,7 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
                   type="text"
                   placeholder="Ej: ANDRÉS"
                   value={secondName}
-                    onChange={(e) => setSecondName(sanitizeWord(e.target.value))}
+                  onChange={(e) => setSecondName(sanitizeWord(e.target.value))}
                   className="h-10"
                   data-testid="input-second-name"
                 />
@@ -318,20 +322,29 @@ const IndividualValidationForm: FunctionComponent<IndividualValidationFormProps>
         )}
       </div>
 
-      {/* BOTÓN VALIDAR */}
-      <Button
-        type="submit"
-        disabled={individualMutation.isPending || !hasPermission("laft:BtnValidarListasIndividual")}
-        className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
-        data-testid="button-validate"
-      >
-        {individualMutation.isPending ? (
-          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-        ) : (
-          <Search className="w-4 h-4 mr-2" />
-        )}
-        Validar en Listas Restrictivas
-      </Button>
+      {/* TEXTO DESCRIPTIVO + BOTÓN VALIDAR */}
+      <div className="space-y-3">
+        <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed italic">
+          {personType === "natural"
+            ? "💡 Si realiza búsqueda por nombre, asegúrese de ingresar el nombre completo del usuario a consultar para obtener resultados precisos."
+            : "💡 Ingrese el nombre jurídico completo de la empresa para obtener resultados precisos en la búsqueda."}
+        </p>
+        <AppButton
+          permKey="laft:BtnValidarListasIndividual"
+          noPermBehavior="disable"
+          type="submit"
+          extraDisabled={individualMutation.isPending}
+          className="w-full h-11 bg-red-600 hover:bg-red-700 text-white text-base"
+          data-testid="button-validate"
+        >
+          {individualMutation.isPending ? (
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+          ) : (
+            <Search className="w-4 h-4 mr-2" />
+          )}
+          Validar en Listas Restrictivas
+        </AppButton>
+      </div>
     </form>
   );
 };

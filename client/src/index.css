@@ -293,3 +293,24 @@
   @apply outline-none ring-2 ring-red-500/20;
   box-shadow: 0 0 0 3px hsl(0, 72%, 51% / 0.1);
 }
+
+.swal-fixed-height {
+  height: 95vh !important;
+  max-height: 95vh !important;
+  display: flex !important;
+  flex-direction: column;
+}
+
+.swal-fixed-height .swal2-html-container {
+  flex: 1 !important;
+  overflow: hidden !important;
+  /* evita doble scroll feo */
+  display: flex;
+  flex-direction: column;
+}
+
+.swal-fixed-height .swal2-html-container>div {
+  flex: 1;
+  overflow-y: auto;
+  /* 🔥 AQUÍ scrollea la tabla */
+}

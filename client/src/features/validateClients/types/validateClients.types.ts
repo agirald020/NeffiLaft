@@ -35,6 +35,7 @@ export interface BulkResult {
 	queryFullName: string;
 	matchCount: number;
 	matches: RestrictiveListMatch[];
+  userIp: string;
 }
 
 /**

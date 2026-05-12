@@ -19,6 +19,42 @@ public class Utils {
         return null;
     }
 
+    /**
+     * Obtiene el nombre completo del usuario autenticado a partir del JWT de Keycloak.
+     * <p>
+     * Prioridad de claims:
+     * <ol>
+     *   <li>{@code name} — nombre completo generado por Keycloak (given_name + family_name).</li>
+     *   <li>{@code given_name} + {@code family_name} — concatenados si {@code name} no está presente.</li>
+     *   <li>{@code preferred_username} — como último recurso.</li>
+     * </ol>
+     *
+     * @return nombre completo del usuario, o {@code null} si no hay autenticación activa
+     */
+    public String getCurrentFullName() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (!(auth instanceof JwtAuthenticationToken)) {
+            return null;
+        }
+        Jwt jwt = ((JwtAuthenticationToken) auth).getToken();
+
+        String fullName = jwt.getClaimAsString("name");
+        if (fullName != null && !fullName.isBlank()) {
+            return fullName.trim();
+        }
+
+        String givenName = jwt.getClaimAsString("given_name");
+        String familyName = jwt.getClaimAsString("family_name");
+        if (givenName != null || familyName != null) {
+            return String.join(" ",
+                java.util.Arrays.stream(new String[]{ givenName, familyName })
+                    .filter(s -> s != null && !s.isBlank())
+                    .toArray(String[]::new));
+        }
+
+        return jwt.getClaimAsString("preferred_username");
+    }
+
     public String getClientIp(HttpServletRequest request) {
         // Intenta obtener IP desde X-Forwarded-For (si está detrás de proxy)
         String xForwardedFor = request.getHeader("X-Forwarded-For");

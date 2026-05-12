@@ -16,4 +16,5 @@ public class BulkValidateResultDto {
     private String queryFullName;
     private int matchCount;
     private List<RestrictiveListEntry> matches;
+    private String userIp;
 }

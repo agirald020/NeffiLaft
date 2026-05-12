@@ -1,16 +1,16 @@
 // client/src/features/validateClients/components/validationResults/BulkResults.tsx
 
-import React, { FunctionComponent, useCallback, useMemo, useState } from "react";
+import React, { FunctionComponent, useMemo } from "react";
 import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2 } from "lucide-react";
 import { useValidationStore } from "../../stores/validateClients.store";
 import type { BulkResult, RestrictiveListMatch } from "../../types/validateClients.types";
 import { useValidateClient } from "../../hooks/useValidateClient";
 import { useToast } from "@/shared/hooks/use-toast";
-import { Button } from "@/shared/ui/button";
-import { hasPermission } from "@/shared/lib/permissions";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
+import { AppButton } from "@/shared/components/AppButton";
 
 const BulkResults: FunctionComponent = () => {
+
   const bulkResults = useValidationStore((s) => s.bulkResults);
   const { excelMutation } = useValidateClient();
   const { toast } = useToast();
@@ -135,8 +135,8 @@ const BulkResults: FunctionComponent = () => {
 
                     <span
                       className={`mt-1 inline-flex w-fit items-center px-2 py-0.5 rounded text-[10px] font-bold border ${tipoLista === "RES"
-                          ? "bg-red-100 text-red-700 border-red-200"
-                          : "bg-orange-100 text-orange-700 border-orange-200"
+                        ? "bg-red-100 text-red-700 border-red-200"
+                        : "bg-orange-100 text-orange-700 border-orange-200"
                         }`}
                     >
                       {descriTipoLista}
@@ -148,8 +148,8 @@ const BulkResults: FunctionComponent = () => {
                 <td className="px-6 py-4">
                   <span
                     className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold border ${permite
-                        ? "bg-green-100 text-green-800 border-green-200"
-                        : "bg-red-100 text-red-800 border-red-200"
+                      ? "bg-green-100 text-green-800 border-green-200"
+                      : "bg-red-100 text-red-800 border-red-200"
                       }`}
                   >
                     {permite ? "SÍ" : "NO"}
@@ -188,12 +188,13 @@ const BulkResults: FunctionComponent = () => {
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
             Resultados de Validación Masiva
           </h2>
-
-          <Button
+          <AppButton
+            permKey="laft:BtnExcelDescargarListaMasivos"
+            noPermBehavior="disable"
             variant="outline"
             size="sm"
             onClick={handleDownloadExcel}
-            disabled={excelMutation.isPending || !hasPermission("laft:BtnExcelDescargarListaMasivos")}
+            extraDisabled={excelMutation.isPending}
             className="text-xs"
           >
             {excelMutation.isPending ? (
@@ -202,7 +203,7 @@ const BulkResults: FunctionComponent = () => {
               <FileDown className="w-3.5 h-3.5 mr-1.5" />
             )}
             Descargar Excel
-          </Button>
+          </AppButton>
         </div>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -231,14 +232,14 @@ const BulkResults: FunctionComponent = () => {
         <div
           key={idx}
           className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm border overflow-hidden ${result.matchCount > 0
-              ? "border-red-200 dark:border-red-900"
-              : "border-gray-200 dark:border-gray-800"
+            ? "border-red-200 dark:border-red-900"
+            : "border-gray-200 dark:border-gray-800"
             }`}
         >
           <div
             className={`px-6 py-3 flex items-center justify-between ${result.matchCount > 0
-                ? "bg-red-50 dark:bg-red-950/30"
-                : "bg-green-50 dark:bg-green-950/30"
+              ? "bg-red-50 dark:bg-red-950/30"
+              : "bg-green-50 dark:bg-green-950/30"
               }`}
           >
             <div className="flex items-center space-x-3">
@@ -255,8 +256,8 @@ const BulkResults: FunctionComponent = () => {
 
             <span
               className={`text-xs font-bold px-2.5 py-1 rounded-full ${result.matchCount > 0
-                  ? "bg-red-100 text-red-700"
-                  : "bg-green-100 text-green-700"
+                ? "bg-red-100 text-red-700"
+                : "bg-green-100 text-green-700"
                 }`}
             >
               {result.matchCount > 0

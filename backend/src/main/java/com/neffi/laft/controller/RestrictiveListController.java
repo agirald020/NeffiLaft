@@ -2,7 +2,6 @@ package com.neffi.laft.controller;
 
 import java.io.ByteArrayOutputStream;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.poi.ss.usermodel.Workbook;
 import org.springframework.beans.factory.annotation.Value;
@@ -125,17 +124,11 @@ public class RestrictiveListController {
     }
 
     @PostMapping("/bulk")
-    public ResponseEntity<?> validateBulk(@RequestParam("file") MultipartFile file,
-            HttpServletRequest request) {
-        try {
-            String clientIp = utils.getClientIp(request);
-            List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
-            return ResponseEntity.ok(results);
-        } catch (Exception e) {
-            log.error("Error procesando archivo Excel", e);
-            return ResponseEntity.internalServerError()
-                    .body(Map.of("error", e.getMessage()));
-        }
+    public ResponseEntity<List<BulkValidateResultDto>> validateBulk(@RequestParam("file") MultipartFile file,
+            HttpServletRequest request) throws Exception {
+        String clientIp = utils.getClientIp(request);
+        List<BulkValidateResultDto> results = restrictiveListService.validateBulk(file, clientIp);
+        return ResponseEntity.ok(results);
     }
 
     /**
@@ -146,19 +139,18 @@ public class RestrictiveListController {
      * una con el resumen de coincidencias y otra con los detalles de las
      * coincidencias encontradas.
      * 
-     * @param file    archivo Excel con los datos a validar
-     * @param request la solicitud HTTP
+     * @param data lista de resultados de validación masiva, con {@code userIp} del cliente
      * @return archivo Excel con los resultados de la validación
      */
     @PostMapping("/report/excel")
-    public ResponseEntity<byte[]> generateBulkReportExcel(@RequestBody List<BulkValidateResultDto> data,
-            HttpServletRequest request) {
+    public ResponseEntity<byte[]> generateBulkReportExcel(
+            @RequestBody List<BulkValidateResultDto> data) {
         try {
-            String clientIp = utils.getClientIp(request);
-            log.info("Generando reporte Excel masivo desde IP: {}", clientIp);
+            String userIp = data.isEmpty() ? null : data.get(0).getUserIp();
+            log.info("Generando reporte Excel masivo - IP del usuario: {}", userIp);
 
             // Generar Excel con resultados
-            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data);
+            try (Workbook workbook = restrictiveListService.generateBulkReportExcel(data, userIp);
                     ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 workbook.write(out);
 

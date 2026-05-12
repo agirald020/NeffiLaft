@@ -4,7 +4,10 @@ import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -19,12 +22,16 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.neffi.laft.dto.BulkErrorDto;
+import com.neffi.laft.dto.BulkInputRow;
 import com.neffi.laft.dto.BulkValidateResultDto;
+import com.neffi.laft.dto.BulkValidationRowErrorDto;
 import com.neffi.laft.dto.ButValidarListasParams;
 import com.neffi.laft.dto.RestrictiveListEntry;
 import com.neffi.laft.dto.TiposDocumentosDTO;
 import com.neffi.laft.dto.ValidateClientDto;
 import com.neffi.laft.enums.BulkTemplateColumn;
+import com.neffi.laft.exception.custom.ExceptionBulkValidation;
 import com.neffi.laft.repository.RestrictiveListRepository;
 import com.neffi.laft.utils.Utils;
 
@@ -40,6 +47,10 @@ public class RestrictiveListService {
 
     private static final String[] BULK_TEMPLATE_COLUMNS = BulkTemplateColumn.headers();
 
+    private static final Pattern DOCUMENT_NUMBER_PATTERN = Pattern.compile("^[A-Za-z0-9]+$");
+    private static final Pattern PERSON_NAME_PATTERN = Pattern.compile("^[\\p{L}]+$");
+    private static final Pattern HAS_WHITESPACE_PATTERN = Pattern.compile(".*\\s+.*");
+
     @Value("${app.restrictiveList.validationProcessName}")
     private String proceso;
 
@@ -48,6 +59,12 @@ public class RestrictiveListService {
 
     @Value("${app.restrictiveList.returnsLinf}")
     private String retornaLinf;
+
+    @Value("${app.restrictiveList.maxBulkRecords}")
+    private int maxBulkRecords;
+
+    @Value("${app.restrictiveList.canal}")
+    private String canal;
 
     private final RestrictiveListRepository restrictiveListRepository;
 
@@ -98,9 +115,25 @@ public class RestrictiveListService {
         return results;
     }
 
+    /**
+     * Procesa la validación masiva desde un archivo Excel.
+     *
+     * Realiza validaciones de formato y reglas de negocio por cada fila,
+     * acumula errores controlados y, si no hay errores, consulta listas
+     * restrictivas por cada registro válido.
+     *
+     * @param file       archivo Excel cargado por el usuario
+     * @param requestUrl origen de la solicitud para trazabilidad
+     * @return lista de resultados de validación por registro
+     * @throws Exception cuando ocurre un error de lectura/procesamiento del archivo
+     */
     public List<BulkValidateResultDto> validateBulk(MultipartFile file, String requestUrl) throws Exception {
         log.info("Validación masiva - archivo: {}", file.getOriginalFilename());
         List<BulkValidateResultDto> results = new ArrayList<>();
+        List<BulkInputRow> validRows = new ArrayList<>();
+        List<BulkValidationRowErrorDto> validationErrors = new ArrayList<>();
+        Map<String, Integer> documentNumbersByRow = new HashMap<>();
+        int processedDataRows = 0;
 
         try (InputStream is = file.getInputStream();
                 Workbook workbook = new XSSFWorkbook(is)) {
@@ -111,61 +144,181 @@ public class RestrictiveListService {
 
             for (int i = firstDataRow; i <= sheet.getLastRowNum(); i++) {
                 Row row = sheet.getRow(i);
-                if (row == null)
+                if (row == null || isRowEmpty(row)) {
                     continue;
+                }
+
+                processedDataRows++;
+                int excelRowNumber = i + 1;
+                List<BulkErrorDto> rowErrors = new ArrayList<>();
 
                 String docNumber = getCellString(row, BulkTemplateColumn.NUMERO_DOCUMENTO);
                 String primerNombreCol = getCellString(row, BulkTemplateColumn.PRIMER_NOMBRE);
-                String razonSocialCol = getCellString(row, BulkTemplateColumn.RAZON_SOCIAL);
-                String primerNombre;
-
-                if (!primerNombreCol.isBlank()) {
-                    log.info("Fila {}: Usando Primer Nombre '{}' para documento {}", i + 1, primerNombreCol, docNumber);
-                    primerNombre = primerNombreCol;
-                } else if (!razonSocialCol.isBlank()) {
-                    log.info("Fila {}: Usando Razón Social '{}' para documento {}", i + 1, razonSocialCol, docNumber);
-                    primerNombre = razonSocialCol;
-                } 
-                else {
-                    log.warn("Fila {}: No se proporcionó ni Primer Nombre ni Razón Social. Se omite esta fila.", i + 1);
-                    primerNombre = "";
-                }
-
                 String segundoNombre = getCellString(row, BulkTemplateColumn.SEGUNDO_NOMBRE);
                 String primerApellido = getCellString(row, BulkTemplateColumn.PRIMER_APELLIDO);
                 String segundoApellido = getCellString(row, BulkTemplateColumn.SEGUNDO_APELLIDO);
+                String razonSocialCol = getCellString(row, BulkTemplateColumn.RAZON_SOCIAL);
 
-                String fullName;
+                if (processedDataRows > maxBulkRecords) {
+                    rowErrors.add(BulkErrorDto.builder()
+                            .value("")
+                            .message(String.format("Se excede el límite de cargue masivo de %d registros configurado en el aplicativo.", maxBulkRecords))
+                            .build());
 
-                fullName = String.join(" ",
+                    validationErrors.add(BulkValidationRowErrorDto.builder()
+                            .rowNumber(excelRowNumber)
+                            .errors(rowErrors)
+                            .build());
+                            
+                    throw new ExceptionBulkValidation("Se encontraron errores de validación en el archivo cargado.",
+                            validationErrors);
+                }
+
+                validateNoWhitespace(docNumber, BulkTemplateColumn.NUMERO_DOCUMENTO, rowErrors);
+                validateNoWhitespace(primerNombreCol, BulkTemplateColumn.PRIMER_NOMBRE, rowErrors);
+                validateNoWhitespace(segundoNombre, BulkTemplateColumn.SEGUNDO_NOMBRE, rowErrors);
+                validateNoWhitespace(primerApellido, BulkTemplateColumn.PRIMER_APELLIDO, rowErrors);
+                validateNoWhitespace(segundoApellido, BulkTemplateColumn.SEGUNDO_APELLIDO, rowErrors);
+
+                if (!docNumber.isBlank()) {
+                    if (!DOCUMENT_NUMBER_PATTERN.matcher(docNumber).matches()) {
+                        rowErrors.add(BulkErrorDto.builder()
+                                .value(docNumber)
+                                .message("El campo Número de Documento no acepta caracteres especiales.")
+                                .build());
+                    }
+
+                    String normalizedDocNumber = docNumber.toUpperCase();
+                    Integer duplicateRowNumber = documentNumbersByRow.putIfAbsent(normalizedDocNumber, excelRowNumber);
+                    if (duplicateRowNumber != null) {
+                        rowErrors.add(BulkErrorDto.builder()
+                                .value(docNumber)
+                                .message(String.format(
+                                        "El campo Número de Documento no permite duplicados. Está repetido con la fila %d.",
+                                        duplicateRowNumber))
+                                .build());
+                    }
+                }
+
+                validatePersonNameField(primerNombreCol, BulkTemplateColumn.PRIMER_NOMBRE, rowErrors);
+                validatePersonNameField(segundoNombre, BulkTemplateColumn.SEGUNDO_NOMBRE, rowErrors);
+                validatePersonNameField(primerApellido, BulkTemplateColumn.PRIMER_APELLIDO, rowErrors);
+                validatePersonNameField(segundoApellido, BulkTemplateColumn.SEGUNDO_APELLIDO, rowErrors);
+
+                if (!rowErrors.isEmpty()) {
+                    validationErrors.add(BulkValidationRowErrorDto.builder()
+                            .rowNumber(excelRowNumber)
+                            .errors(rowErrors)
+                            .build());
+                    continue;
+                }
+
+                String primerNombre;
+                if (!primerNombreCol.isBlank()) {
+                    log.info("Fila {}: Usando Primer Nombre '{}' para documento {}", excelRowNumber, primerNombreCol,
+                            docNumber);
+                    primerNombre = primerNombreCol;
+                } else {
+                    log.info("Fila {}: Usando Razón Social '{}' para documento {}", excelRowNumber, razonSocialCol,
+                            docNumber);
+                    primerNombre = razonSocialCol;
+                }
+
+                String fullName = String.join(" ",
                         java.util.Arrays.stream(
                                 new String[] { primerNombre, segundoNombre, primerApellido, segundoApellido })
                                 .filter(s -> !s.isBlank())
                                 .toArray(String[]::new));
 
-                ValidateClientDto dto = ValidateClientDto.builder()
-                        .p_IDENTIFICACION(docNumber)
-                        .p_NOMBRE_1(primerNombre)
-                        .p_NOMBRE_2(segundoNombre)
-                        .p_APELLIDO_1(primerApellido)
-                        .p_APELLIDO_2(segundoApellido)
-                        .build();
-
-                List<RestrictiveListEntry> matches = validateClient(dto, requestUrl);
-
-                results.add(BulkValidateResultDto.builder()
-                        .queryDocumentNumber(docNumber)
-                        .queryFullName(fullName)
-                        .matchCount(matches.size())
-                        .matches(matches)
+                validRows.add(BulkInputRow.builder()
+                        .docNumber(docNumber)
+                        .primerNombre(primerNombre)
+                        .segundoNombre(segundoNombre)
+                        .primerApellido(primerApellido)
+                        .segundoApellido(segundoApellido)
+                        .fullName(fullName)
                         .build());
             }
+        }
+
+        if (!validationErrors.isEmpty()) {
+            throw new ExceptionBulkValidation("Se encontraron errores de validación en el archivo cargado.",
+                    validationErrors);
+        }
+
+        for (BulkInputRow row : validRows) {
+            ValidateClientDto dto = ValidateClientDto.builder()
+                    .p_IDENTIFICACION(row.getDocNumber())
+                    .p_NOMBRE_1(row.getPrimerNombre())
+                    .p_NOMBRE_2(row.getSegundoNombre())
+                    .p_APELLIDO_1(row.getPrimerApellido())
+                    .p_APELLIDO_2(row.getSegundoApellido())
+                    .build();
+
+            List<RestrictiveListEntry> matches = validateClient(dto, requestUrl);
+
+            results.add(BulkValidateResultDto.builder()
+                    .queryDocumentNumber(row.getDocNumber())
+                    .queryFullName(row.getFullName())
+                    .matchCount(matches.size())
+                    .matches(matches)
+                    .build());
         }
 
         log.info("Validación masiva completada - {} registros procesados", results.size());
 
         return results;
+    }
 
+    /**
+     * Valida que un campo no contenga espacios ni saltos de línea.
+     *
+     * @param value     valor del campo
+     * @param field     columna/etiqueta del campo en la plantilla
+     * @param rowErrors lista de errores acumulados para la fila
+     */
+    private void validateNoWhitespace(String value, BulkTemplateColumn field, List<BulkErrorDto> rowErrors) {
+        if (!value.isBlank() && HAS_WHITESPACE_PATTERN.matcher(value).matches()) {
+            rowErrors.add(
+                BulkErrorDto.builder()
+                .value(value)
+                .message(String.format("El campo %s no debe contener espacios ni saltos de línea.", field.header()))
+                .build()
+            );
+        }
+    }
+
+    /**
+     * Valida que un campo de nombre de persona solo contenga letras.
+     *
+     * @param value     valor del campo
+     * @param field     columna/etiqueta del campo en la plantilla
+     * @param rowErrors lista de errores acumulados para la fila
+     */
+    private void validatePersonNameField(String value, BulkTemplateColumn field, List<BulkErrorDto> rowErrors) {
+        if (!value.isBlank() && !PERSON_NAME_PATTERN.matcher(value).matches()) {
+            rowErrors.add(BulkErrorDto.builder()
+                    .value(value)
+                    .message(String.format("El campo %s no acepta caracteres especiales ni números.", field.header()))
+                    .build());
+        }
+    }
+
+    /**
+     * Determina si una fila no contiene información en ninguna columna definida
+     * para la plantilla de validación masiva.
+     *
+     * @param row fila de Excel a validar
+     * @return true si todos los campos esperados están vacíos, false en caso
+     *         contrario
+     */
+    private boolean isRowEmpty(Row row) {
+        for (BulkTemplateColumn column : BulkTemplateColumn.values()) {
+            if (!getCellString(row, column).isBlank()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -223,11 +376,12 @@ public class RestrictiveListService {
      * Genera un Workbook Excel con los resultados de la validación masiva.
      * Incluye dos hojas: Resumen con los datos principales y Detalles con todas las
      * coincidencias.
-     * 
-     * @param results Lista de resultados de validateBulk
+     *
+     * @param results lista de resultados de validateBulk
+     * @param userIp  dirección IP del equipo del usuario, reportada por el frontend
      * @return Workbook Excel con los resultados
      */
-    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results) {
+    public Workbook generateBulkReportExcel(List<BulkValidateResultDto> results, String userIp) {
         log.debug("Generando reporte Excel para {} registros", results.size());
         Workbook workbook = new XSSFWorkbook();
 
@@ -236,7 +390,7 @@ public class RestrictiveListService {
 
         // Crear hoja de Resumen
         Sheet summarySheet = workbook.createSheet("Resumen");
-        createSummarySheet(summarySheet, results, headerStyle);
+        createSummarySheet(summarySheet, results, headerStyle, userIp);
 
         // Crear hoja de Detalles
         Sheet detailsSheet = workbook.createSheet("Detalles");
@@ -245,6 +399,12 @@ public class RestrictiveListService {
         return workbook;
     }
 
+    /**
+     * Crea el estilo de encabezado utilizado en las hojas de resultados.
+     *
+     * @param workbook libro de Excel donde se creará el estilo
+     * @return estilo de encabezado con fuente blanca y fondo azul
+     */
     private CellStyle createHeaderStyle(Workbook workbook) {
         CellStyle style = workbook.createCellStyle();
         Font font = workbook.createFont();
@@ -256,14 +416,22 @@ public class RestrictiveListService {
         return style;
     }
 
+    /**
+     * Construye la hoja de resumen para el informe de validación masiva.
+     *
+     * @param sheet       hoja destino
+     * @param results     resultados de validación
+     * @param headerStyle estilo para encabezados de tabla
+     * @param userIp      dirección IP del equipo del usuario, reportada por el frontend
+     */
     private void createSummarySheet(Sheet sheet, List<BulkValidateResultDto> results,
-            CellStyle headerStyle) {
+        CellStyle headerStyle, String userIp) {
         CellStyle metadataLabelStyle = sheet.getWorkbook().createCellStyle();
         Font metadataLabelFont = sheet.getWorkbook().createFont();
         metadataLabelFont.setBold(true);
         metadataLabelStyle.setFont(metadataLabelFont);
 
-        // Metadatos en A1:B3
+        // Metadatos en A1:B5
         Row processedRow = sheet.createRow(0);
         Cell processedLabelCell = processedRow.createCell(0);
         processedLabelCell.setCellValue("Registros Procesados");
@@ -280,10 +448,33 @@ public class RestrictiveListService {
         Cell userLabelCell = userRow.createCell(0);
         userLabelCell.setCellValue("Usuario generador");
         userLabelCell.setCellStyle(metadataLabelStyle);
-        userRow.createCell(1).setCellValue(utils.getCurrentUsername());
+        userRow.createCell(1).setCellValue(utils.getCurrentFullName());
 
-        // Headers
-        Row headerRow = sheet.createRow(4);
+        Row canalRow = sheet.createRow(3);
+        Cell canalLabelCell = canalRow.createCell(0);
+        canalLabelCell.setCellValue("Canal utilizado");
+        canalLabelCell.setCellStyle(metadataLabelStyle);
+        canalRow.createCell(1).setCellValue(canal);
+
+        Row equipoRow = sheet.createRow(4);
+        Cell equipoLabelCell = equipoRow.createCell(0);
+        equipoLabelCell.setCellValue("Identificación del equipo");
+        equipoLabelCell.setCellStyle(metadataLabelStyle);
+        equipoRow.createCell(1).setCellValue(userIp);
+
+        // Fila separadora (fila 5)
+        sheet.createRow(5);
+
+        // Permite Vinculación (fila 6)
+        Row permiteVinculacionRow = sheet.createRow(6);
+        Cell permiteVinculacionLabelCell = permiteVinculacionRow.createCell(0);
+        permiteVinculacionLabelCell.setCellValue("Permite Vinculación");
+        permiteVinculacionLabelCell.setCellStyle(metadataLabelStyle);
+        String permiteVinculacionValue = determinePermiteVinculacion(results);
+        permiteVinculacionRow.createCell(1).setCellValue(permiteVinculacionValue);
+
+        // Headers (fila 8, dejando fila 7 como separador)
+        Row headerRow = sheet.createRow(8);
         String[] headers = { "Número Documento", "Nombre Completo", "Coincidencias" };
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -293,7 +484,7 @@ public class RestrictiveListService {
         }
 
         // Datos
-        int rowNum = 5;
+        int rowNum = 9;
         for (BulkValidateResultDto result : results) {
             Row row = sheet.createRow(rowNum++);
 
@@ -313,6 +504,13 @@ public class RestrictiveListService {
         }
     }
 
+    /**
+     * Construye la hoja de detalles con todas las coincidencias encontradas.
+     *
+     * @param sheet       hoja destino
+     * @param results     resultados de validación
+     * @param headerStyle estilo para encabezados de tabla
+     */
     private void createDetailsSheet(Sheet sheet, List<BulkValidateResultDto> results,
             CellStyle headerStyle) {
         // Headers
@@ -352,10 +550,45 @@ public class RestrictiveListService {
         }
     }
 
+    /**
+     * Determina el valor de "Permite Vinculación" para el resumen.
+     * 
+     * Devuelve "Sí" si todos los registros de coincidencias tienen permiteIdentificacion = "S".
+     * Devuelve "No" si al menos una coincidencia tiene permiteIdentificacion distinto de "S".
+     * Si no hay coincidencias, devuelve "Sí" por defecto.
+     *
+     * @param results lista de resultados de validación
+     * @return "Sí" o "No" según la lógica evaluada
+     */
+    private String determinePermiteVinculacion(List<BulkValidateResultDto> results) {
+        for (BulkValidateResultDto result : results) {
+            for (RestrictiveListEntry match : result.getMatches()) {
+                if (!"S".equalsIgnoreCase(match.getPermiteIdentificacion())) {
+                    return "No";
+                }
+            }
+        }
+        return "Sí";
+    }
+
+    /**
+     * Obtiene el valor de una celda a partir de la columna definida en el enum.
+     *
+     * @param row    fila de Excel
+     * @param column columna de la plantilla
+     * @return valor de la celda como texto
+     */
     private String getCellString(Row row, BulkTemplateColumn column) {
         return getCellString(row, column.index());
     }
 
+    /**
+     * Convierte el valor de una celda a texto según su tipo.
+     *
+     * @param row fila de Excel
+     * @param col índice de columna
+     * @return valor normalizado en texto o cadena vacía si no aplica
+     */
     private String getCellString(Row row, int col) {
         Cell cell = row.getCell(col);
         if (cell == null)
