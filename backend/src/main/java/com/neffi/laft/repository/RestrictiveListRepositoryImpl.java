@@ -92,7 +92,8 @@ public class RestrictiveListRepositoryImpl implements RestrictiveListRepositoryC
             }
         } catch (SQLException e) {
             log.error("Error ejecutando BUT_VALIDAR_LISTAS", e);
-            return new ArrayList<>();
+            throw new org.springframework.dao.DataAccessResourceFailureException(
+                    "No fue posible conectar con la base de datos.", e);
         }
     }
 }

@@ -14,8 +14,20 @@ function buildHeaders(data?: unknown): Record<string, string> {
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
-    const text = (await res.text()) || res.statusText;
-    throw new Error(`${res.status}: ${text}`);
+
+    let errorData: any = null;
+
+    try {
+      errorData = await res.json();
+    } catch {
+      // ignorar si no es JSON
+    }
+
+    throw new Error(
+      errorData?.message ||
+      errorData?.error ||
+      res.statusText
+    );
   }
 }
 

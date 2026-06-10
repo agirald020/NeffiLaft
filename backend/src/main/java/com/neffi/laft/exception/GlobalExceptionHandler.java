@@ -4,8 +4,10 @@ import java.time.format.DateTimeParseException;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.CannotGetJdbcConnectionException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -48,6 +50,22 @@ public class GlobalExceptionHandler {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler({
+            CannotGetJdbcConnectionException.class,
+            DataAccessResourceFailureException.class
+    })
+    public ResponseEntity<ApiErrorResponseDto> handleDatabaseConnectionException(Exception ex) {
+        log.error("Error de conexión con base de datos", ex);
+
+        ApiErrorResponseDto response = ApiErrorResponseDto.builder()
+                .message("No fue posible conectar con la base de datos. Comuniquese con soporte.")
+                .timestamp(LocalDateTime.now())
+                .errors(List.of())
+                .build();
+
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
     }
 
     @ExceptionHandler(Exception.class)
