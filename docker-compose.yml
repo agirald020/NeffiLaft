@@ -3,7 +3,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    image:  "422689199069.dkr.ecr.us-east-2.amazonaws.com/neffilaft_back:latest"
+    image:  "208202859881.dkr.ecr.us-east-2.amazonaws.com/neffilaft-backend:latest"
     ports:
       - "8091:8091"
     environment:
@@ -18,7 +18,7 @@ services:
     build:
       context: .
       dockerfile: client/Dockerfile
-    image: "422689199069.dkr.ecr.us-east-2.amazonaws.com/neffilaft_front:latest"
+    image: "208202859881.dkr.ecr.us-east-2.amazonaws.com/neffilaft-frontend:latest"
     ports:
       - "5010:5010"
     container_name: neffi-frontend

@@ -28,6 +28,12 @@ public class AuthController {
     @Value("${keycloak.auth-server-url}")
     private String keycloakUrl;
 
+    @Value("${keycloak.realm}")
+    private String keycloakRealm;
+
+    @Value("${keycloak.client-id}")
+    private String keycloakClientId;
+
     @Value("${app.businessHours.start}")
     private String businessHourStart;
 
@@ -62,8 +68,8 @@ public class AuthController {
     public Map<String, Object> getKeycloakConfig() {
         return Map.of(
                 "url", keycloakUrl,
-                "realm", "neffiLaft",
-                "clientId", "neffiLaft-app",
+                "realm", keycloakRealm,
+                "clientId", keycloakClientId,
                 "bypassActive", bypassAuth);
     }
 
